@@ -5,11 +5,11 @@ import { LottoService } from './lotto.service';
 export class LottoController {
     constructor(private readonly lottoService: LottoService) {}
 
-    @Get()
-    async findAll() {
-        const find = await this.lottoService.findAll();
-        console.log(find)
-        return find;
+    // 추후 서버 첫 기동시 작동으로 변경
+    @Get('/init')
+    async init() {
+        await this.lottoService.init();
+        return 'done';
     }
 
 }
