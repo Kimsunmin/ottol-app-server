@@ -64,7 +64,6 @@ export class LottoService {
                     const val = html(this).text();
                     excelObj[excelColArr[i]] = val.replaceAll(new RegExp('\,|\�|[가-힣]', 'g'), '');
                 })
-                console.log(excelObj);
                 useData.push(excelObj);
             }
         })
@@ -72,11 +71,14 @@ export class LottoService {
     }
 
     async setLotto(drwNoStart: number, drwNoEnd: number) {
+        console.time('excel_download_save');
         const lottoResultList: LottoResult[] = await this.getLottoByDrwNo2(drwNoStart, drwNoEnd);
 
         lottoResultList.forEach((val, i, arr) => {
             this.lottoResultRepository.save({...val});
         })
+
+        console.timeEnd('excel_download_save');
     }
 
     async create(lotto: Lotto): Promise<Lotto>{
