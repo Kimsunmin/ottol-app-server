@@ -1,7 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { TypeOrmModule, TypeOrmModuleOptions, TypeOrmOptionsFactory } from "@nestjs/typeorm";
 import { ConfigService } from '@nestjs/config';
-import { Lotto } from "../lotto.entity";
+import { Lotto } from "../../lotto/entitiy/lotto.entity";
+import { SnakeNamingStrategy } from "typeorm-naming-strategies";
+import { LottoResult } from "src/lotto/entitiy/lotto-result.entity";
 
 @Injectable()
 export class DataBaseConfigService implements TypeOrmOptionsFactory{
@@ -17,8 +19,10 @@ export class DataBaseConfigService implements TypeOrmOptionsFactory{
             database: this.configService.get<string>('DB_DATABASE'),
             entities: [ 
                 `${__dirname}/../**/*.entity.{js, ts}`,
-                Lotto
+                Lotto,
+                LottoResult
             ],
+            namingStrategy: new SnakeNamingStrategy(),
             synchronize: true, 
         };
     }
