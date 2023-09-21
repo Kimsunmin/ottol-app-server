@@ -2,40 +2,24 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { map, firstValueFrom, catchError } from 'rxjs';
 import { AxiosError } from 'axios';
-import { ReturnValue, excelColArr } from './lotto-return-value.enum';
-import { Lotto } from './entitiy/lotto.entity';
-import { LottoRepository, LottoResultRepository } from './lotto.repository';
+import { excelColArr, lottoSearchMapper } from './lotto.utils';
+import { LottoResultRepository, LottoSearchRepository } from './lotto.repository';
 import { ConfigService } from '@nestjs/config';
 import { SelectLottoDto } from './dto/select-lotto.dto';
 import * as cheerio from 'cheerio';
 import { LottoResult } from './entitiy/lotto-result.entity';
+import { LottoSearch } from './entitiy/lotto-search.entity';
 
 @Injectable()
 export class LottoService {
     constructor(
         private readonly httpService: HttpService,
         private readonly confingService: ConfigService,
-        private readonly lottoRepository: LottoRepository,
         private readonly lottoResultRepository: LottoResultRepository,
+        private readonly lottoSearchRepository: LottoSearchRepository,
     ) {}
 
-    async getLottoByDrwNo(drwNo: number): Promise<Lotto> {
-        const {returnValue, ...find } = await firstValueFrom(
-            this.httpService.get(
-                this.confingService.get<string>('LOTTO_API_BASE_URL'),
-                {
-                    params: {
-                        method: this.confingService.get('LOTTO_API_METHOD'),
-                        drwNo: drwNo,
-                    }
-            })
-            .pipe(map( res => res.data ))
-        )
-
-        return returnValue === ReturnValue.SUCCESS ? find : undefined;
-    } 
-
-    async getLottoByDrwNo2(drwNoStart: number, drwNoEnd: number): Promise<LottoResult[]> {
+    async getLottoByDrwNo(drwNoStart: number, drwNoEnd: number): Promise<LottoResult[]> {
         const data = await firstValueFrom(
             this.httpService.get(
                 this.confingService.get<string>('LOTTO_API_BASE_URL'),
@@ -50,7 +34,61 @@ export class LottoService {
             ).pipe(map(res => res.data))
         )
 
-        const html = cheerio.load(data);
+        return this.parserByHtml(data);
+    }
+
+    async setLotto(drwNoStart: number, drwNoEnd: number) {
+        console.log(`excel_download_save... start:${drwNoStart}, end:${drwNoEnd}`);
+        console.time('excel_download_save');
+        const lottoResultList: LottoResult[] = await this.getLottoByDrwNo(drwNoStart, drwNoEnd);
+
+        lottoResultList.forEach((val, i, arr) => {
+            //lottoResult add
+            this.createLottoResult(val)
+
+            //LottoSearch add
+            this.createLottoSearch(this.transData(val));
+        })
+
+        console.timeEnd('excel_download_save');
+    }
+
+    async find() {
+        
+    }
+
+    async createLottoResult(lottoResult: LottoResult): Promise<LottoResult>{
+        return await this.lottoResultRepository.save({...lottoResult})
+    }
+
+    async createLottoSearch(lottoSearch: LottoSearch[]): Promise<LottoSearch[]>{
+        return await this.lottoSearchRepository.save(lottoSearch)
+    }
+
+    // lottoResult -> lottoSearch 데이터 변환
+    transData(lottoResult: LottoResult): LottoSearch[] {
+        const mapper = lottoSearchMapper;
+
+        const keys = Object.keys(lottoResult);
+        const lottoSearchList: LottoSearch[] = [];
+
+        keys.forEach((val, i) => {
+            if(mapper[val]){
+                const tmp: any = {
+                    drwNo: lottoResult.drwNo,
+                    drwtNoType: mapper[val].drwtNoType,
+                    acc: mapper[val].acc,
+                    drwtNo: lottoResult[val]
+                };
+
+                lottoSearchList.push({...tmp});
+            }
+        });
+        return lottoSearchList;
+    }
+
+    parserByHtml(htmlData: string): LottoResult[] {
+        const html = cheerio.load(htmlData);
 
         const useData: LottoResult[] = [];
 
@@ -60,78 +98,20 @@ export class LottoService {
             if(i > 2){
                 const excelObj: any = {};
 
-                html(this).children('td').filter(function() { return !html(this).attr('rowspan')}).each(function (i, el) {
+                html(this).children('td').filter(function() {
+                    // 첫번째 당첨 연도 열 제외
+                    return !html(this).attr('rowspan')
+                }).each(function (i, el) {
                     const val = html(this).text();
+                    
+                    // --원, --등, 및 불필요 문자 제거
                     excelObj[excelColArr[i]] = val.replaceAll(new RegExp('\,|\�|[가-힣]', 'g'), '');
                 })
+
                 useData.push(excelObj);
             }
         })
         return useData;
-    }
-
-    async setLotto(drwNoStart: number, drwNoEnd: number) {
-        console.time('excel_download_save');
-        const lottoResultList: LottoResult[] = await this.getLottoByDrwNo2(drwNoStart, drwNoEnd);
-
-        lottoResultList.forEach((val, i, arr) => {
-            this.lottoResultRepository.save({...val});
-        })
-
-        console.timeEnd('excel_download_save');
-    }
-
-    async create(lotto: Lotto): Promise<Lotto>{
-        const res: Lotto = await this.lottoRepository.save({
-            ...lotto
-        })
-        
-        return res
-    }
-
-    async init(drwNo: number = 1) {
-        console.log(`init() method start by DrwNo: ${drwNo}`)
-        let firstDrwNo = drwNo;
-
-        console.time('init_time');
-        while(true) {
-            let find: Lotto = undefined;
-            try {
-                find = await this.getLottoByDrwNo(firstDrwNo);
-                
-                if(!find) break;
-
-                await this.create(find);
-
-                if (firstDrwNo % 100 === 0) console.log(`drwNo : ${firstDrwNo} save`);
-
-            } catch (error) {
-                //const retryDrwNo = firstDrwNo + 1;
-
-                //console.timeEnd('init_time');
-                console.log(`ERROR: ${error} last save DrwNo: ${firstDrwNo-1} retry DrwNo: ${firstDrwNo-1}`);
-                firstDrwNo -= 1;
-                //await this.init(retryDrwNo);
-            }
-
-            firstDrwNo += 1;
-        }
-        console.timeEnd('init_time');
-    }
-
-    async find(selectLottoDto: SelectLottoDto): Promise<Lotto[]> {
-        const findList: Lotto[] = await this.lottoRepository.find({
-            where: {
-                drwtNo1: selectLottoDto.drwtNo1,
-                drwtNo2: selectLottoDto.drwtNo2,
-                drwtNo3: selectLottoDto.drwtNo3,
-                drwtNo4: selectLottoDto.drwtNo4,
-                drwtNo5: selectLottoDto.drwtNo5,
-                drwtNo6: selectLottoDto.drwtNo6,
-            }
-        });
-
-        return findList;
     }
 
 }
