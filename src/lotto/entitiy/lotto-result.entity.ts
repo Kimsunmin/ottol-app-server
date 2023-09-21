@@ -9,34 +9,34 @@ export class LottoResult extends BaseEntity{
     drwNoDate: string			// 날짜
     
     @Column({type: 'bigint'})
-    winPayRank1: number		// 1등 상금액
+    winPayRank1: number		    // 1등 상금액
     
     @Column()
-    winnerRank1: number		// 1등 당첨인원
+    winnerRank1: number		    // 1등 당첨인원
             
     @Column({type: 'bigint'})
-    winPayRank2: number		// 1등 상금액
+    winPayRank2: number		    // 2등 상금액
     
     @Column()
-    winnerRank2: number		// 1등 당첨인원
+    winnerRank2: number		    // 2등 당첨인원
         
     @Column({type: 'bigint'})
-    winPayRank3: number		// 1등 상금액
+    winPayRank3: number		    // 3등 상금액
     
     @Column()
-    winnerRank3: number		// 1등 당첨인원
+    winnerRank3: number		    // 3등 당첨인원
         
     @Column({type: 'bigint'})
-    winPayRank4: number		// 1등 상금액
+    winPayRank4: number		    // 4등 상금액
     
     @Column()
-    winnerRank4: number		// 1등 당첨인원
+    winnerRank4: number		    // 4등 당첨인원
         
     @Column({type: 'bigint'})
-    winPayRank5: number		// 1등 상금액
+    winPayRank5: number		    // 5등 상금액
     
     @Column()
-    winnerRank5: number		// 1등 당첨인원
+    winnerRank5: number		    // 5등 당첨인원
 
     @Column()
     drwtNo1: number				// 로또번호 1
