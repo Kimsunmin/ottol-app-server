@@ -1,4 +1,5 @@
-import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, Entity, ManyToOne, PrimaryColumn } from "typeorm";
+import { LottoResult } from "./lotto-result.entity";
 
 @Entity()
 export class LottoSearch extends BaseEntity{
@@ -11,7 +12,7 @@ export class LottoSearch extends BaseEntity{
     @Column()
     acc: number		            // 로또 번호 정보별 가중치
     
-    @Column()
+    @PrimaryColumn()
     drwtNo: number		        // 당첨 번호
-               
+
 }

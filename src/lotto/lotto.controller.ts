@@ -2,7 +2,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { LottoService } from './lotto.service';
 import { SelectLottoDto } from './dto/select-lotto.dto';
 
-@Controller('lotto')
+@Controller('api/v1')
 export class LottoController {
     constructor(private readonly lottoService: LottoService) {}
 
@@ -12,9 +12,13 @@ export class LottoController {
         return 'done';
     }
 
-    // @Get('find')
-    // async findLottoByDrwNo(@Query() selectLottoDto: SelectLottoDto) {
-    //     return await this.lottoService.find(selectLottoDto)
-    // }
+    @Get('find')
+    async findLottoByDrwNo(@Query() selectLottoDto: SelectLottoDto) {
+        
+        return {
+            result : await this.lottoService.find(selectLottoDto),
+            input: selectLottoDto,
+        }
+    }
 
 }
