@@ -1,11 +1,12 @@
-import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
+import { LottoSearch } from "./lotto-search.entity";
 
 @Entity()
 export class LottoResult extends BaseEntity{
     @PrimaryColumn()
     drwNo: number				// 로또회차
 
-    @Column()
+    @Column({comment: '날짜'})
     drwNoDate: string			// 날짜
     
     @Column({type: 'bigint'})
