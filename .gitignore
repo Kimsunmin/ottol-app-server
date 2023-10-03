@@ -1,8 +1,12 @@
 # compiled output
 /dist
 /node_modules
+
+# setting
 *.config.*
 .env.*
+Dockerfile
+.dockerignore
 
 # Logs
 logs
