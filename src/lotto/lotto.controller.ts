@@ -13,7 +13,7 @@ export class LottoController {
     }
 
     @Get('find')
-    async findLottoByDrwNo(@Query() selectLottoDto: SelectLottoDto) {
+    async findLottoByDrwtNo(@Query() selectLottoDto: SelectLottoDto) {
         
         return {
             result : await this.lottoService.find(selectLottoDto),

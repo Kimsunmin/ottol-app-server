@@ -86,6 +86,7 @@ export class LottoService {
                 'result.drwt_no5',
                 'result.drwt_no6',
                 'result.bnus_no',
+                'result.drw_no_date',
                 `case 
                     when search.rank = 6 then 1
                     when search.rank = 15 then 2
