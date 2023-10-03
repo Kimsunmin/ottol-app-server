@@ -32,30 +32,20 @@ ottol-app-server
 $ npm install
 ```
 
+## Set .env
+
+```bash
+.env 파일에 내용을 작성 후 .env.[dev, prod]로 수정한다.
+```
+
 ## Running the app
 
 ```bash
-# development
-$ npm run start
-
 # watch mode
 $ npm run start:dev
 
 # production mode
 $ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
 
 ## Support
