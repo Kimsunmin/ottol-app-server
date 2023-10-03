@@ -1,15 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { map, firstValueFrom, catchError } from 'rxjs';
-import { AxiosError } from 'axios';
-import { excelColArr, lottoSearchMapper } from './lotto.utils';
-import { LottoResultRepository, LottoSearchRepository } from './lotto.repository';
 import { ConfigService } from '@nestjs/config';
+import { SelectQueryBuilder } from 'typeorm';
+import { map, firstValueFrom, catchError } from 'rxjs';
+import { parserByHtml, transData } from './lotto.utils';
+import { LottoResultRepository, LottoSearchRepository } from './lotto.repository';
 import { SelectLottoDto } from './dto/select-lotto.dto';
-import * as cheerio from 'cheerio';
 import { LottoResult } from './entitiy/lotto-result.entity';
 import { LottoSearch } from './entitiy/lotto-search.entity';
-import { SelectQueryBuilder } from 'typeorm';
+
 
 @Injectable()
 export class LottoService {
@@ -35,7 +34,7 @@ export class LottoService {
             ).pipe(map(res => res.data))
         )
 
-        return this.parserByHtml(data);
+        return parserByHtml(data);
     }
 
     async setLotto(drwNoStart: number, drwNoEnd: number) {
@@ -48,10 +47,15 @@ export class LottoService {
             this.createLottoResult(val)
 
             //LottoSearch add
-            this.createLottoSearch(this.transData(val));
+            this.createLottoSearch(transData(val));
         })
 
         console.timeEnd('excel_download_save');
+        return {
+            drwNoStart: lottoResultList[0].drwNo,
+            drwNoEnd: lottoResultList[lottoResultList.length-1].drwNo,
+            saveCount: lottoResultList.length
+        }
     }
 
     async find(select: SelectLottoDto) {
@@ -106,63 +110,26 @@ export class LottoService {
             .orderBy('win_pay', 'DESC')
 
         return await find.getRawMany();
-    }       
+    }
+    
+    async findMaxDrwNo(): Promise<number> {
+        const maxDrwNo = await this.lottoResultRepository.find({
+            take: 1,
+            order: {
+                drwNo: 'DESC'
+            }
+        });
+
+        return maxDrwNo[0]?.drwNo ?? 0 ;
+    }
 
     async createLottoResult(lottoResult: LottoResult): Promise<LottoResult>{
-        return await this.lottoResultRepository.save({...lottoResult})
+        return await this.lottoResultRepository.save({...lottoResult});
     }
 
     async createLottoSearch(lottoSearch: LottoSearch[]): Promise<LottoSearch[]>{ 
-        return await this.lottoSearchRepository.save(lottoSearch)
+        return await this.lottoSearchRepository.save(lottoSearch);
     }
 
-    // lottoResult -> lottoSearch 데이터 변환
-    transData(lottoResult: LottoResult): LottoSearch[] {
-        const mapper = lottoSearchMapper;
-
-        const keys = Object.keys(lottoResult);
-        const lottoSearchList: LottoSearch[] = [];
-
-        keys.forEach((val, i) => {
-            if(mapper[val]){
-                const tmp: any = {
-                    drwNo: lottoResult.drwNo,
-                    drwtNoType: mapper[val].drwtNoType,
-                    acc: mapper[val].acc,
-                    drwtNo: lottoResult[val]
-                };
-
-                lottoSearchList.push({...tmp});
-            }
-        });
-        return lottoSearchList;
-    }
-
-    parserByHtml(htmlData: string): LottoResult[] {
-        const html = cheerio.load(htmlData);
-
-        const useData: LottoResult[] = [];
-
-        const tr = html('tr');
-        tr.each(function (i, el) {
-            // 처음 2줄은 생략
-            if(i > 2){
-                const excelObj: any = {};
-
-                html(this).children('td').filter(function() {
-                    // 첫번째 당첨 연도 열 제외
-                    return !html(this).attr('rowspan')
-                }).each(function (i, el) {
-                    const val = html(this).text();
-                    
-                    // --원, --등, 및 불필요 문자 제거
-                    excelObj[excelColArr[i]] = val.replaceAll(new RegExp('\,|\�|[가-힣]', 'g'), '');
-                })
-
-                useData.push(excelObj);
-            }
-        })
-        return useData;
-    }
-
+    
 }
