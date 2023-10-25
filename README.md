@@ -34,6 +34,7 @@ $ npm install
 
 ## Set .env
 
+
 ```bash
 .env 파일에 내용을 작성 후 .env.[dev, prod]로 수정한다.
 ```
