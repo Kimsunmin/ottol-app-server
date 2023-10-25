@@ -3,7 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { SelectQueryBuilder } from 'typeorm';
 import { map, firstValueFrom, catchError } from 'rxjs';
-import { parserByHtml, transData } from './lotto.utils';
+import { parserByHtml, transData, parserGetMaxDrwNo } from './lotto.utils';
 import { LottoResultRepository, LottoSearchRepository } from './lotto.repository';
 import { SelectLottoDto } from './dto/select-lotto.dto';
 import { LottoResult } from './entitiy/lotto-result.entity';
@@ -120,7 +120,11 @@ export class LottoService {
             }
         });
 
-        return maxDrwNo[0]?.drwNo ?? 0 ;
+        // html데이터 필요
+        const maxDrwNoByWeb = parserGetMaxDrwNo('');
+         
+
+        return Math.max(maxDrwNo[0].drwNo, maxDrwNoByWeb);
     }
 
     async createLottoResult(lottoResult: LottoResult): Promise<LottoResult>{

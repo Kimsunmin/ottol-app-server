@@ -96,3 +96,16 @@ export function parserByHtml(htmlData: string): LottoResult[] {
     })
     return useData;
 }
+
+export function parserGetMaxDrwNo(htmlData: string): number {
+
+    if(htmlData === ''){
+        return 0;
+    }
+
+    const html = cheerio.load(htmlData);
+
+    const maxDrwNo = html('#article > div:nth-child(2) > div > div.win_result > h4 > strong').text();
+
+    return parseInt(maxDrwNo);
+}
