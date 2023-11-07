@@ -1,13 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { map, firstValueFrom, catchError } from 'rxjs';
 import { parserByHtml, transData, parserGetMaxDrwNo } from './lotto.utils';
-import { LottoResultRepository, LottoSearchRepository } from './lotto.repository';
 import { SelectLottoDto } from './dto/select-lotto.dto';
 import { LottoResult } from './entitiy/lotto-result.entity';
 import { LottoSearch } from './entitiy/lotto-search.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 
 
 @Injectable()
@@ -15,8 +15,12 @@ export class LottoService {
     constructor(
         private readonly httpService: HttpService,
         private readonly confingService: ConfigService,
-        private readonly lottoResultRepository: LottoResultRepository,
-        private readonly lottoSearchRepository: LottoSearchRepository,
+        
+        @InjectRepository(LottoResult)
+        private readonly lottoResultRepository: Repository<LottoResult>,
+
+        @InjectRepository(LottoSearch)
+        private readonly lottoSearchRepository: Repository<LottoSearch>,
     ) {}
 
     async getLottoByDrwNo(drwNoStart: number, drwNoEnd: number): Promise<LottoResult[]> {

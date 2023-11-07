@@ -17,11 +17,12 @@ export class DataBaseConfigService implements TypeOrmOptionsFactory{
             port: this.configService.get<number>('DB_PORT'),
             host: this.configService.get<string>('DB_HOST'),
             database: this.configService.get<string>('DB_DATABASE'),
-            entities: [ 
-                `${__dirname}/../**/*.entity.{js, ts}`,
-                LottoResult,
-                LottoSearch,
-            ],
+            autoLoadEntities: true,
+            // entities: [ 
+            //     `${__dirname}/../**/*.entity.{js, ts}`,
+            //     LottoResult,
+            //     LottoSearch,
+            // ],
             namingStrategy: new SnakeNamingStrategy(),
             synchronize: true, 
         };
