@@ -8,7 +8,7 @@ export class LottoController {
     constructor(private readonly lottoService: LottoService) {}
 
     @Get('/create')
-    async create(@Query('drwNoStart') drwNoStart: number, @Query('drwNoEnd') drwNoEnd: number) {
+    async create(@Query('drwNoStart') drwNoStart: number = 1, @Query('drwNoEnd') drwNoEnd: number = 100000000) {
         const result = await this.lottoService.setLotto(drwNoStart, drwNoEnd);
         return result;
     }
@@ -16,19 +16,24 @@ export class LottoController {
     @Get('/update')
     @Cron('0 50 20 * * 6') // 매주 토요일 20시 50분 마다 실행
     async update(@Query('drwNo') drwNo: number){
-        const updateDrwNo = drwNo ?? await this.lottoService.findMaxDrwNo() + 1;
+        const updateDrwNo = drwNo ?? await this.lottoService.findMaxDrwNo();
 
         const result = await this.lottoService.setLotto(updateDrwNo, updateDrwNo);
         return result
     }
 
-    @Get('find')
+    @Get('/find')
     async findLottoByDrwtNo(@Query() selectLottoDto: SelectLottoDto) {
         
         return {
             result : await this.lottoService.find(selectLottoDto),
             input: selectLottoDto,
         }
+    }
+
+    @Get('/test')
+    test() {
+        return this.lottoService.getTest();
     }
 
 }

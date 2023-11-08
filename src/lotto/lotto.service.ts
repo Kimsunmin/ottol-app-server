@@ -3,11 +3,11 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { map, firstValueFrom, catchError } from 'rxjs';
-import { parserByHtml, transData, parserGetMaxDrwNo } from './lotto.utils';
 import { SelectLottoDto } from './dto/select-lotto.dto';
 import { LottoResult } from './entitiy/lotto-result.entity';
 import { LottoSearch } from './entitiy/lotto-search.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { UtilsService } from 'src/utils/utils.service';
 
 
 @Injectable()
@@ -15,6 +15,7 @@ export class LottoService {
     constructor(
         private readonly httpService: HttpService,
         private readonly confingService: ConfigService,
+        private readonly utilsService: UtilsService,
         
         @InjectRepository(LottoResult)
         private readonly lottoResultRepository: Repository<LottoResult>,
@@ -23,9 +24,24 @@ export class LottoService {
         private readonly lottoSearchRepository: Repository<LottoSearch>,
     ) {}
 
-    async getLottoByDrwNo(drwNoStart: number, drwNoEnd: number): Promise<LottoResult[]> {
+    async getTest() {
         const data = await firstValueFrom(
             this.httpService.get(
+                'https://dhlottery.co.kr/gameResult.do?method=byWin',
+            ).pipe(map(res => res.data))
+        );
+
+        console.log(data, typeof data);
+        console.log(this.utilsService.parserDrwNoByHtml(data));
+        return data;
+    }
+
+    async setLotto(drwNoStart: number, drwNoEnd: number) {
+        console.log(`excel_download_save... start:${drwNoStart}, end:${drwNoEnd}`);
+        console.time('excel_download_save');
+        //const lottoResultList: LottoResult[] = await this.getLottoByDrwNo(drwNoStart, drwNoEnd);
+        const lottoResultList: LottoResult[] = LottoResult.parserByHtml(
+            await this.utilsService.callApiByGet(
                 this.confingService.get<string>('LOTTO_API_BASE_URL'),
                 {
                     params: {
@@ -35,26 +51,17 @@ export class LottoService {
                         drwNoEnd: drwNoEnd,
                     }
                 }
-            ).pipe(map(res => res.data))
+            )
         )
+        
+        //로또 당첨 결과 저장
+        await this.lottoResultRepository.save(lottoResultList);
 
-        return parserByHtml(data);
-    }
-
-    async setLotto(drwNoStart: number, drwNoEnd: number) {
-        console.log(`excel_download_save... start:${drwNoStart}, end:${drwNoEnd}`);
-        console.time('excel_download_save');
-        const lottoResultList: LottoResult[] = await this.getLottoByDrwNo(drwNoStart, drwNoEnd);
-
-        lottoResultList.forEach((val, i, arr) => {
-            //lottoResult add
-            this.createLottoResult(val)
-
-            //LottoSearch add
-            this.createLottoSearch(transData(val));
-        })
+        const lottoSearchList = lottoResultList.map(v => LottoSearch.transData(v)).flat(2);
+        await this.lottoSearchRepository.save(lottoSearchList);
 
         console.timeEnd('excel_download_save');
+
         return {
             drwNoStart: lottoResultList[0].drwNo,
             drwNoEnd: lottoResultList[lottoResultList.length-1].drwNo,
@@ -125,19 +132,8 @@ export class LottoService {
         });
 
         // html데이터 필요
-        const maxDrwNoByWeb = parserGetMaxDrwNo('');
-         
-
-        return Math.max(maxDrwNo[0].drwNo, maxDrwNoByWeb);
+        const maxDrwNoByWeb = this.utilsService.parserDrwNoByHtml('');
+        return Math.max(maxDrwNo[0]?.drwNo, maxDrwNoByWeb);
     }
 
-    async createLottoResult(lottoResult: LottoResult): Promise<LottoResult>{
-        return await this.lottoResultRepository.save({...lottoResult});
-    }
-
-    async createLottoSearch(lottoSearch: LottoSearch[]): Promise<LottoSearch[]>{ 
-        return await this.lottoSearchRepository.save(lottoSearch);
-    }
-
-    
 }

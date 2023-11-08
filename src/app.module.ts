@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataBaseConfigModule } from './db/config/config.module';
 import { DataBaseConfigService } from './db/config/config.service';
+import { UtilsModule } from './utils/utils.module';
 
 
 @Module({
@@ -19,7 +20,8 @@ import { DataBaseConfigService } from './db/config/config.service';
       imports: [ DataBaseConfigModule ],
       useClass: DataBaseConfigService,
       inject: [ DataBaseConfigService ]
-    })
+    }),
+    UtilsModule
   ],
   controllers: [AppController],
   providers: [AppService],

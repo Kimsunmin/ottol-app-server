@@ -52,21 +52,17 @@ export const lottoSearchMapper = {
 export function transData(lottoResult: LottoResult): LottoSearch[] {
     const mapper = lottoSearchMapper;
 
-    const keys = Object.keys(lottoResult);
-    const lottoSearchList: LottoSearch[] = [];
+    const keys = Object.keys(mapper);
 
-    keys.forEach((val, i) => {
-        if(mapper[val]){
-            const tmp: any = {
+    const lottoSearchList: any[] = keys.map(v => {
+            return {
                 drwNo: lottoResult.drwNo,
-                drwtNoType: mapper[val].drwtNoType,
-                acc: mapper[val].acc,
-                drwtNo: lottoResult[val]
-            };
-
-            lottoSearchList.push({...tmp});
-        }
+                drwtNoType: mapper[v].drwtNoType,
+                acc: mapper[v].acc,
+                drwtNo: lottoResult[v]
+            }
     });
+
     return lottoSearchList;
 }
 
