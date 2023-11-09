@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
+import { VersioningType } from '@nestjs/common';
 import { LottoService } from './lotto/lotto.service';
 
 async function bootstrap() {
@@ -14,6 +15,11 @@ async function bootstrap() {
   if(await lottoResultService.findMaxDrwNo() === 0){
     await lottoResultService.setLotto(0, 1000000);
   }
+
+  app.setGlobalPrefix('api');
+  app.enableVersioning({
+    type: VersioningType.URI
+  });
 
   await app.listen(port);
 }

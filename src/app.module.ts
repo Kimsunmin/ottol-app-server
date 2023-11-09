@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { LottoModule } from './lotto/lotto.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -23,7 +21,5 @@ import { UtilsModule } from './utils/utils.module';
     }),
     UtilsModule
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {} 

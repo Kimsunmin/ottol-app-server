@@ -4,7 +4,7 @@ import { LottoService } from './lotto.service';
 import { SelectLottoDto } from './dto/select-lotto.dto';
 import { PageOptionDto } from 'src/lotto/dto/page-option.dto';
 
-@Controller('api/v1')
+@Controller({path: 'lotto', version: '1'})
 export class LottoController {
     constructor(private readonly lottoService: LottoService) {}
 
