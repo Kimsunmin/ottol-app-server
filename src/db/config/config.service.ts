@@ -24,6 +24,7 @@ export class DataBaseConfigService implements TypeOrmOptionsFactory{
             //     LottoSearch,
             // ],
             namingStrategy: new SnakeNamingStrategy(),
+            logging: true,
             synchronize: true, 
         };
     }

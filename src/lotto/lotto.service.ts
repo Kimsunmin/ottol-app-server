@@ -8,6 +8,9 @@ import { LottoResult } from './entitiy/lotto-result.entity';
 import { LottoSearch } from './entitiy/lotto-search.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UtilsService } from 'src/utils/utils.service';
+import { PageOptionDto } from 'src/lotto/dto/page-option.dto';
+import { PageMetaDto } from 'src/lotto/dto/page-meta.dto';
+import { PageDto } from 'src/lotto/dto/page.dto';
 
 
 @Injectable()
@@ -24,22 +27,23 @@ export class LottoService {
         private readonly lottoSearchRepository: Repository<LottoSearch>,
     ) {}
 
-    async getTest() {
-        const data = await firstValueFrom(
-            this.httpService.get(
-                'https://dhlottery.co.kr/gameResult.do?method=byWin',
-            ).pipe(map(res => res.data))
-        );
-
-        console.log(data, typeof data);
-        console.log(this.utilsService.parserDrwNoByHtml(data));
-        return data;
+    async getMaxDrwNoByWeb(): Promise<number> {
+        return this.utilsService.parserDrwNoByHtml(
+            await this.utilsService.callApiByGet(
+                this.confingService.get<string>('LOTTO_API_BASE_URL'),
+                {
+                    params: {
+                        method: 'byWin'
+                    }
+                }
+            )
+        )
     }
 
     async setLotto(drwNoStart: number, drwNoEnd: number) {
         console.log(`excel_download_save... start:${drwNoStart}, end:${drwNoEnd}`);
         console.time('excel_download_save');
-        //const lottoResultList: LottoResult[] = await this.getLottoByDrwNo(drwNoStart, drwNoEnd);
+        
         const lottoResultList: LottoResult[] = LottoResult.parserByHtml(
             await this.utilsService.callApiByGet(
                 this.confingService.get<string>('LOTTO_API_BASE_URL'),
@@ -57,8 +61,10 @@ export class LottoService {
         //로또 당첨 결과 저장
         await this.lottoResultRepository.save(lottoResultList);
 
-        const lottoSearchList = lottoResultList.map(v => LottoSearch.transData(v)).flat(2);
-        await this.lottoSearchRepository.save(lottoSearchList);
+        // 로또 검색 테이블 저장
+        lottoResultList.forEach(v => {
+            this.lottoSearchRepository.save(LottoSearch.transData(v));
+        });
 
         console.timeEnd('excel_download_save');
 
@@ -69,7 +75,57 @@ export class LottoService {
         }
     }
 
-    async find(select: SelectLottoDto) {
+    async find(select: PageOptionDto): Promise<PageDto<any>> {
+
+        /**
+         * 
+         * 현재 페이지
+         * 보여줄 건수
+         * 건수
+         * 전체 페이지 수
+         * 앞?
+         * 뒤?
+         */
+        const find = this.findQuery(select);
+        find
+            .orderBy('win_pay', select.order)
+            .offset(select.offset)
+            .limit(select.size)
+
+        const itemCount = await find.getCount();
+        const result = await find.getRawMany();
+        const pageMetaDto = new PageMetaDto(select, itemCount);
+
+
+
+        return new PageDto(result, pageMetaDto);
+    }
+
+    async findByYear(select: SelectLottoDto, year: number) {
+
+        const nowYear = new Date().getFullYear();
+        const age = nowYear - year;
+        const ageTwentyYear = nowYear + (19 - age);
+        const searchYear = 19 > age ? year : ageTwentyYear
+
+        const find = this.findQuery(select);
+        find
+            .orderBy('win_pay', 'DESC')
+            .where('result.drw_no_date >= :year', {year: searchYear})
+            .limit(1)
+
+        const result = await find.getRawOne();
+        return {
+            result: result,
+            mete: {
+                year: year,
+                age: age,
+                ageTwentyYear: ageTwentyYear,
+            }
+        };
+    }
+
+    findQuery(select: SelectLottoDto): SelectQueryBuilder<LottoResult> {
 
         /**
          * 임의로 로또 당첨 번호 1~6번은 1의 가중치 보너스 번호는 10의 가중치를 부여한다.
@@ -118,22 +174,22 @@ export class LottoService {
                 end AS win_pay`,
             ])
             .innerJoin(subQuery, 'search', 'result.drw_no = search.drw_no')
-            .orderBy('win_pay', 'DESC')
 
-        return await find.getRawMany();
+        return find;
     }
     
     async findMaxDrwNo(): Promise<number> {
         const maxDrwNo = await this.lottoResultRepository.find({
-            take: 1,
+            select: {
+                drwNo: true
+            },
             order: {
                 drwNo: 'DESC'
-            }
+            },
+            take: 1
         });
 
-        // html데이터 필요
-        const maxDrwNoByWeb = this.utilsService.parserDrwNoByHtml('');
-        return Math.max(maxDrwNo[0]?.drwNo, maxDrwNoByWeb);
+        return maxDrwNo[0]?.drwNo ?? 0;
     }
 
 }
