@@ -111,7 +111,7 @@ export class LottoService {
         const result = await find.getRawOne();
         return {
             result: result,
-            mete: {
+            meta: {
                 year: year,
                 age: age,
                 ageTwentyYear: ageTwentyYear,
