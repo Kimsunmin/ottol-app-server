@@ -77,15 +77,7 @@ export class LottoService {
 
     async find(select: PageOptionDto): Promise<PageDto<any>> {
 
-        /**
-         * 
-         * 현재 페이지
-         * 보여줄 건수
-         * 건수
-         * 전체 페이지 수
-         * 앞?
-         * 뒤?
-         */
+
         const find = this.findQuery(select);
         find
             .orderBy('win_pay', select.order)
@@ -96,7 +88,9 @@ export class LottoService {
         const result = await find.getRawMany();
         const pageMetaDto = new PageMetaDto(select, itemCount);
 
-
+        if(pageMetaDto.page > pageMetaDto.pageCount || pageMetaDto.page < 1){
+            throw new NotFoundException(`Page ${select.page} is not found`);
+        }
 
         return new PageDto(result, pageMetaDto);
     }
