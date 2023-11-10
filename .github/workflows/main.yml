@@ -2,7 +2,7 @@ name: OTTOL-SERVER-CICD
 
 env:
   REGISTRY: ghcr.io
-  DOCKER_IMAGE: ${{ github.actor }}/ottol-server
+  DOCKER_IMAGE: kimsunmin/ottol-server
   DOCKER_CONTAINER: ottol-server
   VERSION: ${{ github.sha }}
 
