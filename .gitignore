@@ -5,7 +5,6 @@
 # setting
 *.config.*
 .env.*
-Dockerfile
 .dockerignore
 
 # Logs
