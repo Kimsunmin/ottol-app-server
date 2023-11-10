@@ -25,7 +25,7 @@ jobs:
           cache: 'npm'
       - run: npm install
 
-  bulid:
+  build:
       needs: test
       runs-on: ubuntu-latest
   
@@ -55,20 +55,20 @@ jobs:
           bulider: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest
-
-deploy:
-  needs: build
-  name: Deploy
-  runs-on: [ self-hosted, label-go ]
-
-  steps:
-  - name: Login to ghcr
-    uses: docker/login-action@v2 
-    with:
-      registry: ${{ env.REGISTRY }}
-      username: ${{ github.actor }}
-      password: ${{ secrets.OTTOL_TOKEN }}
-  - name: Run docker
-    run: |
-        docker stop ${{ env.DOCKER_CONTAINER }} && docker rm ${{ env.DOCKER_CONTAINER }} && docker rmi ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest 
-        docker run -d -p 3000:3000 --name ${{ env.DOCKER_CONTAINER }} --restart always ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest
+          
+  deploy:
+    needs: build
+    name: Deploy
+    runs-on: [ self-hosted, label-go ]
+  
+    steps:
+    - name: Login to ghcr
+      uses: docker/login-action@v2 
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.OTTOL_TOKEN }}
+    - name: Run docker
+      run: |
+          docker stop ${{ env.DOCKER_CONTAINER }} && docker rm ${{ env.DOCKER_CONTAINER }} && docker rmi ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest 
+          docker run -d -p 3000:3000 --name ${{ env.DOCKER_CONTAINER }} --restart always ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest
