@@ -13,7 +13,7 @@ export class LottoController {
         if(drwNoEnd === 1){
             drwNoEnd = await this.lottoService.getMaxDrwNoByWeb();
         }
-        const result = await this.lottoService.setLotto(drwNoStart, drwNoEnd); 
+        const result = await this.lottoService.setLotto(drwNoStart, drwNoEnd);  
         return result;
     }
 
