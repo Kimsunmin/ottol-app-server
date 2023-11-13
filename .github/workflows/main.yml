@@ -67,7 +67,7 @@ jobs:
       with:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
-        password: ${{ secrets.OTTOL_TOKEN }}
+        password: ${{ secrets.OTTOL_TOKEN }} 
     - name: Run docker
       run: |
           docker stop ${{ env.DOCKER_CONTAINER }} && docker rm ${{ env.DOCKER_CONTAINER }} && docker rmi ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest 
