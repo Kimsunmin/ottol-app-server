@@ -4,5 +4,6 @@ WORKDIR /var/app
 COPY . .
 RUN npm install
 RUN npm run build
+ENV NODE_ENV prod
 EXPOSE 3000
-CMD ["node", "NODE_ENV=prod", "dist/main"]
+CMD ["node", "dist/main"]
