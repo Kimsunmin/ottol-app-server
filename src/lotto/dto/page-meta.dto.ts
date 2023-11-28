@@ -1,4 +1,4 @@
-import { PageOptionDto } from "src/lotto/dto/page-option.dto";
+import { PageOptionDto } from "../dto/page-option.dto";
 
 export class PageMetaDto {
     page: number;
