@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { LottoModule } from './lotto/lotto.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataBaseConfigModule } from './db/config/config.module';
-import { DataBaseConfigService } from './db/config/config.service';
+import { DataBaseConfigModule } from './database/database.module';
+import { DataBaseConfigService } from './database/database.service';
 import { UtilsModule } from './utils/utils.module';
 
 

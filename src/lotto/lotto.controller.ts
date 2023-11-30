@@ -2,7 +2,7 @@ import { Controller, Get, Param, Query, UsePipes, ValidationPipe, HttpCode, Pars
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { LottoService } from './lotto.service';
 import { SelectLottoDto } from './dto/select-lotto.dto';
-import { PageOptionDto } from 'src/lotto/dto/page-option.dto';
+import { PageOptionDto } from '../lotto/dto/page-option.dto';
 
 @Controller({path: 'lotto', version: '1'})
 export class LottoController {

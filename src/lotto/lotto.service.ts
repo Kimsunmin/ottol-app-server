@@ -7,10 +7,10 @@ import { SelectLottoDto } from './dto/select-lotto.dto';
 import { LottoResult } from './entitiy/lotto-result.entity';
 import { LottoSearch } from './entitiy/lotto-search.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UtilsService } from 'src/utils/utils.service';
-import { PageOptionDto } from 'src/lotto/dto/page-option.dto';
-import { PageMetaDto } from 'src/lotto/dto/page-meta.dto';
-import { PageDto } from 'src/lotto/dto/page.dto';
+import { UtilsService } from '../utils/utils.service';
+import { PageOptionDto } from '../lotto/dto/page-option.dto';
+import { PageMetaDto } from '../lotto/dto/page-meta.dto';
+import { PageDto } from '../lotto/dto/page.dto';
 
 
 @Injectable()

@@ -2,8 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { TypeOrmModule, TypeOrmModuleOptions, TypeOrmOptionsFactory } from "@nestjs/typeorm";
 import { ConfigService } from '@nestjs/config';
 import { SnakeNamingStrategy } from "typeorm-naming-strategies";
-import { LottoResult } from "src/lotto/entitiy/lotto-result.entity";
-import { LottoSearch } from "src/lotto/entitiy/lotto-search.entity";
 
 @Injectable()
 export class DataBaseConfigService implements TypeOrmOptionsFactory{
