@@ -2,7 +2,6 @@ FROM node:18-alpine
 RUN mkdir -p /var/app
 WORKDIR /var/app
 COPY . .
-COPY .env.prod ./
 RUN npm install
 RUN npm run build
 ENV NODE_ENV prod
