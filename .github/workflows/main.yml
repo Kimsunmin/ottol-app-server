@@ -70,5 +70,15 @@ jobs:
         password: ${{ secrets.OTTOL_TOKEN }}
     - name: Run docker
       run: |
-          docker stop ${{ env.DOCKER_CONTAINER }} && docker rm ${{ env.DOCKER_CONTAINER }} && docker rmi ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest 
-          docker run -d -p 3000:3000 --name ${{ env.DOCKER_CONTAINER }} --restart always ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest
+        echo "PORT=${{ secrets.PORT }}" >> .env.prod
+        echo "PORT=${{ secrets.DB_HOST }}" >> .env.prod
+        echo "PORT=${{ secrets.DB_PORT }}" >> .env.prod
+        echo "PORT=${{ secrets.DB_USERNAME }}" >> .env.prod
+        echo "PORT=${{ secrets.DB_PASSWORD }}" >> .env.prod
+        echo "PORT=${{ secrets.DB_DATABASE }}" >> .env.prod
+        echo "PORT=${{ secrets.LOTTO_API_BASE_URL }}" >> .env.prod
+        echo "PORT=${{ secrets.LOTTO_API_METHOD }}" >> .env.prod
+        echo "PORT=${{ secrets.LOTTO_API_GUBUN }}" >> .env.prod
+        cat .env.prod
+        docker stop ${{ env.DOCKER_CONTAINER }} && docker rm ${{ env.DOCKER_CONTAINER }} && docker rmi ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest 
+        docker run -d -p 3000:3000 --name ${{ env.DOCKER_CONTAINER }} --restart always ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest
