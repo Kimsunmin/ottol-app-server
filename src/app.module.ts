@@ -6,7 +6,6 @@ import { DataBaseConfigModule } from './database/database.module';
 import { DataBaseConfigService } from './database/database.service';
 import { UtilsModule } from './utils/utils.module';
 
-
 @Module({
   imports: [
     LottoModule,
@@ -15,11 +14,11 @@ import { UtilsModule } from './utils/utils.module';
       envFilePath: `.env.${process.env.NODE_ENV}`,
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ DataBaseConfigModule ],
+      imports: [DataBaseConfigModule],
       useClass: DataBaseConfigService,
-      inject: [ DataBaseConfigService ]
+      inject: [DataBaseConfigService],
     }),
-    UtilsModule
+    UtilsModule,
   ],
 })
-export class AppModule {} 
+export class AppModule {}

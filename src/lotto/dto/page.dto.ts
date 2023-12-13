@@ -1,15 +1,14 @@
-import { IsArray } from "class-validator";
-import { PageMetaDto } from "../dto/page-meta.dto";
+import { IsArray } from 'class-validator';
+import { PageMetaDto } from '../dto/page-meta.dto';
 
 export class PageDto<T> {
+  @IsArray()
+  result: T[];
 
-    @IsArray()
-    result: T[];
+  meta: PageMetaDto;
 
-    meta: PageMetaDto;
-
-    constructor(result: T[], meta: PageMetaDto) {
-        this.result = result;
-        this.meta = meta;
-    }
+  constructor(result: T[], meta: PageMetaDto) {
+    this.result = result;
+    this.meta = meta;
+  }
 }
