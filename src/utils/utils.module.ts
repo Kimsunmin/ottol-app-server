@@ -3,10 +3,8 @@ import { UtilsService } from './utils.service';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [
-    HttpModule
-  ],
+  imports: [HttpModule],
   providers: [UtilsService],
-  exports: [UtilsService]
+  exports: [UtilsService],
 })
 export class UtilsModule {}
