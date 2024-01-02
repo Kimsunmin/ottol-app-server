@@ -12,8 +12,8 @@
     "deleteOutDir": true,
     "assets": [
       {
-        "include": "./.env.*",
-        "outDir": "./dist/"
+        "include": "../resources/*.yaml",
+        "outDir": "./dist/resources/."
       }
     ]
   }

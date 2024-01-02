@@ -12,6 +12,7 @@
     "start:dev": "cross-env NODE_ENV=dev nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "cross-env NODE_ENV=prod node dist/main",
+    "schema:drop": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli schema:drop -d ./src/database/database.service.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -20,6 +21,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@anatine/zod-nestjs": "^2.0.3",
+    "@anatine/zod-openapi": "^2.2.1",
     "@nestjs/axios": "^3.0.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.1.1",
@@ -33,6 +36,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "cross-env": "^7.0.3",
+    "js-yaml": "^4.1.0",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
@@ -48,6 +52,7 @@
     "@swc/core": "^1.3.99",
     "@types/express": "^4.17.17",
     "@types/jest": "^29.5.2",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.3.1",
     "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.59.11",

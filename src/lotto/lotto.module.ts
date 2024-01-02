@@ -9,14 +9,15 @@ import { LottoResult } from '../lotto/entitiy/lotto-result.entity';
 import { UtilsModule } from '../utils/utils.module';
 
 @Module({
-  imports : [
+  imports: [
     HttpModule,
     UtilsModule,
     ScheduleModule.forRoot(),
     //TypeOrmExModule.forCustomRepository([LottoResultRepository, LottoSearchRepository]),
-    TypeOrmModule.forFeature([LottoResult, LottoSearch])
+    TypeOrmModule.forFeature([LottoResult, LottoSearch]),
   ],
   controllers: [LottoController],
-  providers: [LottoService]
+  providers: [LottoService],
+  exports: [LottoService],
 })
 export class LottoModule {}
