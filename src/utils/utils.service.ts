@@ -1,14 +1,9 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
-import { map, firstValueFrom, catchError, pipe } from 'rxjs';
+import { map, firstValueFrom } from 'rxjs';
 import * as cheerio from 'cheerio';
 
-import {
-  AxiosInstance,
-  AxiosPromise,
-  AxiosRequestConfig,
-  AxiosResponse,
-} from 'axios';
+import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Observable } from 'rxjs';
 
 @Injectable()

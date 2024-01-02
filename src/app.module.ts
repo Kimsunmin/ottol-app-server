@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataBaseConfigModule } from './database/database.module';
 import { DataBaseConfigService } from './database/database.service';
 import { UtilsModule } from './utils/utils.module';
+import { AppInitService } from '@/app-init.service';
 
 @Module({
   imports: [
@@ -20,5 +21,6 @@ import { UtilsModule } from './utils/utils.module';
     }),
     UtilsModule,
   ],
+  providers: [AppInitService],
 })
 export class AppModule {}

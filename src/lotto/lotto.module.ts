@@ -18,5 +18,6 @@ import { UtilsModule } from '../utils/utils.module';
   ],
   controllers: [LottoController],
   providers: [LottoService],
+  exports: [LottoService],
 })
 export class LottoModule {}

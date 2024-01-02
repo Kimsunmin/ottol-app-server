@@ -23,9 +23,9 @@ export class LottoController {
     @Query('drwNoEnd') drwNoEnd: number = 1,
   ) {
     if (drwNoEnd === 1) {
-      drwNoEnd = await this.lottoService.getMaxDrwNoByWeb();
+      drwNoEnd = await this.lottoService.readLastDrwNo();
     }
-    const result = await this.lottoService.setLotto(drwNoStart, drwNoEnd);
+    const result = await this.lottoService.saveLottoResult(drwNoStart, drwNoEnd);
     return result;
   }
 
@@ -35,10 +35,10 @@ export class LottoController {
     const drwNoStart = (await this.lottoService.findMaxDrwNo()) + 1;
     const drwNoEnd = Math.max(
       drwNoStart,
-      await this.lottoService.getMaxDrwNoByWeb(),
+      await this.lottoService.readLastDrwNo(),
     );
 
-    const result = await this.lottoService.setLotto(drwNoStart, drwNoEnd);
+    const result = await this.lottoService.saveLottoResult(drwNoStart, drwNoEnd);
     return result;
   }
 

@@ -12,6 +12,7 @@
     "start:dev": "cross-env NODE_ENV=dev nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "cross-env NODE_ENV=prod node dist/main",
+    "schema:drop": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli schema:drop -d ./src/database/database.service.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",

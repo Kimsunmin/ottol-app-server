@@ -2,7 +2,6 @@ import { Injectable, NotFoundException, Inject } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { map, firstValueFrom, catchError } from 'rxjs';
 import { SelectLottoDto } from './dto/select-lotto.dto';
 import { LottoResult } from './entitiy/lotto-result.entity';
 import { LottoSearch } from './entitiy/lotto-search.entity';
@@ -11,6 +10,8 @@ import { UtilsService } from '../utils/utils.service';
 import { PageOptionDto } from '../lotto/dto/page-option.dto';
 import { PageMetaDto } from '../lotto/dto/page-meta.dto';
 import { PageDto } from '../lotto/dto/page.dto';
+import * as cheerio from 'cheerio';
+import { catchError, firstValueFrom, map } from 'rxjs';
 
 @Injectable()
 export class LottoService {
@@ -26,20 +27,7 @@ export class LottoService {
     private readonly lottoSearchRepository: Repository<LottoSearch>,
   ) {}
 
-  async getMaxDrwNoByWeb(): Promise<number> {
-    return this.utilsService.parserDrwNoByHtml(
-      await this.utilsService.callApiByGet(
-        this.confingService.get<string>('LOTTO_API_BASE_URL'),
-        {
-          params: {
-            method: 'byWin',
-          },
-        },
-      ),
-    );
-  }
-
-  async setLotto(drwNoStart: number, drwNoEnd: number) {
+  async saveLottoResult(drwNoStart: number, drwNoEnd: number) {
     console.log(`excel_download_save... start:${drwNoStart}, end:${drwNoEnd}`);
     console.time('excel_download_save');
 
@@ -49,21 +37,22 @@ export class LottoService {
         {
           params: {
             method: this.confingService.get<string>('LOTTO_API_METHOD'),
-            gubun: this.confingService.get<string>('LOTTO_API_GUBUN'),
+            gubun: 'byWin',
             drwNoStart: drwNoStart,
             drwNoEnd: drwNoEnd,
           },
         },
       ),
     );
-
+    console.log(lottoResultList);
     //로또 당첨 결과 저장
     await this.lottoResultRepository.save(lottoResultList);
 
     // 로또 검색 테이블 저장
-    lottoResultList.forEach((v) => {
-      this.lottoSearchRepository.save(LottoSearch.transData(v));
-    });
+    const lottoSearchList = lottoResultList.map((result) =>
+      LottoSearch.transData(result),
+    );
+    await this.lottoSearchRepository.save(lottoSearchList.flat());
 
     console.timeEnd('excel_download_save');
 
@@ -190,5 +179,38 @@ export class LottoService {
     });
 
     return maxDrwNo[0]?.drwNo ?? 0;
+  }
+
+  async readAllLottoCount() {
+    return await this.lottoResultRepository.count();
+  }
+
+  async readLastDrwNo() {
+    const data = await firstValueFrom(
+      this.httpService
+        .get(this.confingService.get<string>('LOTTO_API_BASE_URL'), {
+          params: {
+            method: 'byWin',
+          },
+        })
+        .pipe(
+          map((res) => res.data),
+          catchError((err) => {
+            throw err;
+          }),
+        ),
+    );
+
+    if (data === '') {
+      throw new NotFoundException('DrwNo not found');
+    }
+
+    const html = cheerio.load(data);
+
+    const lastDrwNoCssSelector =
+      '#article > div:nth-child(2) > div > div.win_result > h4 > strong' as const;
+    const lastDrwNo = html(lastDrwNoCssSelector).text();
+
+    return parseInt(lastDrwNo);
   }
 }

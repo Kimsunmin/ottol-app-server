@@ -9,13 +9,6 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT', 3000);
 
-  const lottoResultService = app.get(LottoService);
-
-  // 데이터가 없는 경우
-  if ((await lottoResultService.findMaxDrwNo()) === 0) {
-    await lottoResultService.setLotto(0, 1000000);
-  }
-
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
