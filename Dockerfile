@@ -3,8 +3,8 @@ RUN mkdir -p /var/app
 WORKDIR /var/app
 COPY . .
 COPY .env.prod ./
-RUN npm install
-RUN npm run build
+RUN pnpm install
+RUN pnpm run build
 ENV NODE_ENV prod
 EXPOSE 3000
 CMD ["node", "dist/main"]
