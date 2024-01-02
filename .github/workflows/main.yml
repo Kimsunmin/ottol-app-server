@@ -23,6 +23,9 @@ jobs:
         with: 
           node-version: 18.16.0
           cache: 'pnpm'
+      - name: Install pnpm
+        run: npm i -g pnpm
+      - name: Install node packeage
       - run: pnpm install
 
   build:
