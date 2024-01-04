@@ -8,7 +8,7 @@ import {
   HttpCode,
   ParseIntPipe,
 } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { LottoService } from './lotto.service';
 import { SelectLottoDto } from './dto/select-lotto.dto';
 import { PageOptionDto } from '../lotto/dto/page-option.dto';
@@ -19,26 +19,27 @@ export class LottoController {
 
   @Get('/create')
   async create(
-    @Query('drwNoStart') drwNoStart: number = 1,
-    @Query('drwNoEnd') drwNoEnd: number = 1,
+    @Query('drwNoStart') drwNoStart = 1,
+    @Query('drwNoEnd') drwNoEnd = 1,
   ) {
     if (drwNoEnd === 1) {
-      drwNoEnd = await this.lottoService.readLastDrwNo();
+      drwNoEnd = await this.lottoService.readLastDrwNoByWeb();
     }
-    const result = await this.lottoService.saveLottoResult(drwNoStart, drwNoEnd);
+    const result = await this.lottoService.saveLotto(drwNoStart, drwNoEnd);
+
     return result;
   }
 
   @Get('/update')
   @Cron('0 50 20 * * 6') // 매주 토요일 20시 50분 마다 실행
   async update(@Query('drwNo') drwNo: number) {
-    const drwNoStart = (await this.lottoService.findMaxDrwNo()) + 1;
+    const drwNoStart = (await this.lottoService.readLastDrwNo()) + 1;
     const drwNoEnd = Math.max(
       drwNoStart,
-      await this.lottoService.readLastDrwNo(),
+      await this.lottoService.readLastDrwNoByWeb(),
     );
 
-    const result = await this.lottoService.saveLottoResult(drwNoStart, drwNoEnd);
+    const result = await this.lottoService.saveLotto(drwNoStart, drwNoEnd);
     return result;
   }
 
