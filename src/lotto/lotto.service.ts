@@ -44,7 +44,7 @@ export class LottoService {
       .map((result) => LottoSearch.transResultToSearch(result))
       .flat();
 
-    if (lottoResultList.length !== lottoSearchList.length / 6) {
+    if (lottoResultList.length !== lottoSearchList.length / 7) {
       throw new ConflictException('');
     }
 
@@ -201,7 +201,7 @@ export class LottoService {
       take: 1,
     });
 
-    const lastDrwNo = readDrwNo.at(0).drwNo ?? 0;
+    const lastDrwNo = readDrwNo[0]?.drwNo ?? 0;
     return lastDrwNo;
   }
 
