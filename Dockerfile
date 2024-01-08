@@ -6,7 +6,7 @@ FROM base AS dependencies
 
 RUN mkdir -p /app
 WORKDIR /app
-COPY packeage.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install
 
 FROM base AS build
