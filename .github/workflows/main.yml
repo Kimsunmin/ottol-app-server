@@ -22,8 +22,13 @@ jobs:
         uses: actions/setup-node@v3 
         with: 
           node-version: 18.16.0
-          cache: 'npm'
-      - run: npm install
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+      - name: Install pnpm
+        run: pnpm install
 
   build:
       needs: test
@@ -71,14 +76,14 @@ jobs:
     - name: Run docker
       run: |
         echo "PORT=${{ secrets.PORT }}" >> .env.prod
-        echo "PORT=${{ secrets.DB_HOST }}" >> .env.prod
-        echo "PORT=${{ secrets.DB_PORT }}" >> .env.prod
-        echo "PORT=${{ secrets.DB_USERNAME }}" >> .env.prod
-        echo "PORT=${{ secrets.DB_PASSWORD }}" >> .env.prod
-        echo "PORT=${{ secrets.DB_DATABASE }}" >> .env.prod
-        echo "PORT=${{ secrets.LOTTO_API_BASE_URL }}" >> .env.prod
-        echo "PORT=${{ secrets.LOTTO_API_METHOD }}" >> .env.prod
-        echo "PORT=${{ secrets.LOTTO_API_GUBUN }}" >> .env.prod
+        echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env.prod
+        echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env.prod
+        echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env.prod
+        echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env.prod
+        echo "DB_DATABASE=${{ secrets.DB_DATABASE }}" >> .env.prod
+        echo "LOTTO_API_BASE_URL=${{ secrets.LOTTO_API_BASE_URL }}" >> .env.prod
+        echo "LOTTO_API_METHOD=${{ secrets.LOTTO_API_METHOD }}" >> .env.prod
+        echo "LOTTO_API_GUBUN=${{ secrets.LOTTO_API_GUBUN }}" >> .env.prod
         cat .env.prod
         docker stop ${{ env.DOCKER_CONTAINER }} && docker rm ${{ env.DOCKER_CONTAINER }} && docker rmi ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest 
-        docker run -d -p 3000:3000 --name ${{ env.DOCKER_CONTAINER }} --restart always ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest
+        docker run --env-file ./.env.prod -d -p 3000:3000 --name ${{ env.DOCKER_CONTAINER }} --restart always ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest
