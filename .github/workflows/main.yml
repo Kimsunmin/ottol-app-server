@@ -84,6 +84,5 @@ jobs:
         echo "LOTTO_API_BASE_URL=${{ secrets.LOTTO_API_BASE_URL }}" >> .env.prod
         echo "LOTTO_API_METHOD=${{ secrets.LOTTO_API_METHOD }}" >> .env.prod
         echo "LOTTO_API_GUBUN=${{ secrets.LOTTO_API_GUBUN }}" >> .env.prod
-        cat .env.prod
         docker stop ${{ env.DOCKER_CONTAINER }} && docker rm ${{ env.DOCKER_CONTAINER }} && docker rmi ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest 
         docker run --env-file ./.env.prod -d -p 3000:3000 --name ${{ env.DOCKER_CONTAINER }} --restart always ${{ env.REGISTRY }}/${{ env.DOCKER_IMAGE }}:latest
