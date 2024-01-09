@@ -21,6 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@anatine/zod-mock": "^3.13.3",
     "@anatine/zod-nestjs": "^2.0.3",
     "@anatine/zod-openapi": "^2.2.1",
     "@nestjs/axios": "^3.0.0",
@@ -46,6 +47,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@automock/jest": "^2.1.0",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",

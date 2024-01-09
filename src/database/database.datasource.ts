@@ -1,30 +1,37 @@
+import loadConfiguration, {
+  Environment,
+  findDirectoryForFile,
+} from '@/config/loadConfiguration';
 import { NotFoundException } from '@nestjs/common';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
-import { existsSync } from 'fs';
 import { resolve } from 'path';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
-const datasourceFactory = () => {
-  const cwd = process.cwd();
-  const envFilePath = resolve(cwd, `.env.dev`);
+const datasourceFactory = async () => {
+  const env = Environment.parse(process.env.NODE_ENV);
+  const fileName = `.env.${env}`;
 
-  if (!existsSync(envFilePath)) {
-    throw new NotFoundException('env file is not found');
+  const fileDirectory = await findDirectoryForFile(fileName);
+  if (!fileDirectory) {
+    throw new NotFoundException(`${fileName} is not found`);
   }
 
+  const filePath = resolve(fileDirectory, fileName);
   dotenv.config({
-    path: envFilePath,
+    path: filePath,
   });
 
+  const config = await loadConfiguration();
+
   const options = {
-    type: 'postgres',
-    username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    port: parseInt(process.env.DB_PORT),
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
+    type: config.DB_TYPE,
+    username: config.DB_USERNAME,
+    password: config.DB_PASSWORD,
+    port: config.DB_PORT,
+    host: config.DB_HOST,
+    database: config.DB_DATABASE,
     autoLoadEntities: true,
     namingStrategy: new SnakeNamingStrategy(),
   } as TypeOrmModuleOptions;
