@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  HttpCode,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, ParseIntPipe } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { LottoService } from './lotto.service';
 import { SelectLottoDto } from './dto/select-lotto.dto';
