@@ -1,28 +1,33 @@
-import { IsEmpty, IsNumber, isEmpty } from 'class-validator';
-import { Type } from 'class-transformer';
+import * as z from 'zod';
+import { extendApi } from '@anatine/zod-openapi';
+import { createZodDto } from '@anatine/zod-nestjs';
 
-export class SelectLottoDto {
-  @Type(() => Number)
-  @IsNumber()
-  drwtNo1: number;
+const SelectLottoSchema = extendApi(
+  z.object({
+    drwtNo1: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 1',
+    }),
+    drwtNo2: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 2',
+    }),
+    drwtNo3: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 3',
+    }),
+    drwtNo4: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 4',
+    }),
+    drwtNo5: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 5',
+    }),
+    drwtNo6: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 6',
+    }),
+  }),
+  {
+    description: 'Select lotto numbers by user',
+  },
+);
 
-  @Type(() => Number)
-  @IsNumber()
-  drwtNo2: number;
+export type SelectLotto = z.infer<typeof SelectLottoSchema>;
 
-  @Type(() => Number)
-  @IsNumber()
-  drwtNo3: number;
-
-  @Type(() => Number)
-  @IsNumber()
-  drwtNo4: number;
-
-  @Type(() => Number)
-  @IsNumber()
-  drwtNo5: number;
-
-  @Type(() => Number)
-  @IsNumber()
-  drwtNo6: number;
-}
+export class SelectLottoDto extends createZodDto(SelectLottoSchema) {}

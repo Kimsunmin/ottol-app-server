@@ -3,8 +3,6 @@ import {
   Get,
   Param,
   Query,
-  UsePipes,
-  ValidationPipe,
   HttpCode,
   ParseIntPipe,
 } from '@nestjs/common';
@@ -12,8 +10,10 @@ import { Cron } from '@nestjs/schedule';
 import { LottoService } from './lotto.service';
 import { SelectLottoDto } from './dto/select-lotto.dto';
 import { PageOptionDto } from '../lotto/dto/page-option.dto';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @Controller({ path: 'lotto', version: '1' })
+@ApiTags('Lotto 데이터 저장 및 검색')
 export class LottoController {
   constructor(private readonly lottoService: LottoService) {}
 
@@ -44,17 +44,19 @@ export class LottoController {
   }
 
   @Get('/find')
-  @UsePipes(new ValidationPipe({ transform: true }))
   findLotto(@Query() selectLottoDto: PageOptionDto) {
     return this.lottoService.find(selectLottoDto);
   }
 
   @Get('/find/:year')
-  @HttpCode(200)
+  @ApiOperation({
+    summary: '출생년도에 따른 로또 번호 당첨 결과 조회',
+  })
   findLottoByYear(
     @Query() selectLottoDto: SelectLottoDto,
     @Param('year', ParseIntPipe) year: number,
   ) {
+    console.log(selectLottoDto);
     return this.lottoService.findByYear(selectLottoDto, year);
   }
 }
