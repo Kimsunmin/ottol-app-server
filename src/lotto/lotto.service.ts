@@ -6,7 +6,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { SelectLottoDto } from './dto/select-lotto.dto';
+import { SelectLottoDto } from './lotto.dto';
 import { LottoResult } from './entitiy/lotto-result.entity';
 import { LottoSearch } from './entitiy/lotto-search.entity';
 import { InjectRepository } from '@nestjs/typeorm';

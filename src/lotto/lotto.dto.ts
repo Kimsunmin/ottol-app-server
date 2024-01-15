@@ -1,4 +1,4 @@
-import * as z from 'zod';
+import { z } from 'zod';
 import { extendApi } from '@anatine/zod-openapi';
 import { createZodDto } from '@anatine/zod-nestjs';
 
@@ -26,6 +26,7 @@ const SelectLottoSchema = extendApi(
     })
     .superRefine((arg, ctx) => {
       const drwtNoArr = Object.values(arg);
+
       for (const selectDrwtNo of drwtNoArr) {
         const duplicatedCount = drwtNoArr.filter(
           (drwtNo) => selectDrwtNo === drwtNo,
@@ -50,4 +51,25 @@ const SelectLottoSchema = extendApi(
 
 export type SelectLotto = z.infer<typeof SelectLottoSchema>;
 
-export class SelectLottoDto extends createZodDto(SelectLottoSchema) {}
+export class SelectLottoDto extends createZodDto(
+  extendApi(SelectLottoSchema, { description: '로또 선택 번호' }),
+) {}
+
+export const CreateLottoSchema = extendApi(
+  z.object({
+    drwNoStart: extendApi(z.coerce.number().default(1), {
+      description: 'Create lotto start drwNo',
+      default: 1,
+    }),
+    drwNoEnd: extendApi(z.coerce.number().default(1), {
+      description: 'Create lotto end drwNo',
+      default: 1,
+    }),
+  }),
+);
+
+export type CreateLotto = z.infer<typeof CreateLottoSchema>;
+
+export class CreateLottoDto extends createZodDto(
+  extendApi(CreateLottoSchema, { description: '로또 결과 저장' }),
+) {}
