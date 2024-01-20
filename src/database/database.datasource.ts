@@ -50,11 +50,11 @@ export const dataSourceFactory: TypeOrmDataSourceFactory = async (options) => {
 const datasourceFactoryForMigrations = async () => {
   const config = await loadConfiguration();
 
-  const findFileName = config.env !== 'prod' ? 'package.json' : 'main.js';
-  const packageJsonDirectory = await findDirectoryForFile(findFileName);
-  if (!packageJsonDirectory) {
-    throw new Error(`Colud not find ${findFileName} directory`);
-  }
+  // const findFileName = config.env !== 'prod' ? 'package.json' : 'main.js';
+  // const packageJsonDirectory = await findDirectoryForFile(findFileName);
+  // if (!packageJsonDirectory) {
+  //   throw new Error(`Colud not find ${findFileName} directory`);
+  // }
 
   const options = {
     type: config.DB_TYPE,
@@ -63,7 +63,7 @@ const datasourceFactoryForMigrations = async () => {
     port: config.DB_PORT,
     host: config.DB_HOST,
     database: config.DB_DATABASE,
-    entities: [resolve(packageJsonDirectory, '**', '*.entity.ts')],
+    entities: [resolve(process.cwd(), '**', '*.entity.ts')],
     autoLoadEntities: true,
     namingStrategy: new SnakeNamingStrategy(),
   } as TypeOrmModuleOptions;
