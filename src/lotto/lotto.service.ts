@@ -7,8 +7,8 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { SelectLottoDto } from './lotto.dto';
-import { LottoResult } from './entitiy/lotto-result.entity';
-import { LottoSearch } from './entitiy/lotto-search.entity';
+import { LottoResultEntity } from './entitiy/lotto-result.entity';
+import { LottoSearchEntity } from './entitiy/lotto-search.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UtilsService } from '../utils/utils.service';
 import { PageOptionDto } from '../lotto/dto/page-option.dto';
@@ -22,13 +22,12 @@ export class LottoService {
   constructor(
     private readonly httpService: HttpService,
     private readonly confingService: ConfigService,
-    private readonly utilsService: UtilsService,
 
-    @InjectRepository(LottoResult)
-    private readonly lottoResultRepository: Repository<LottoResult>,
+    @InjectRepository(LottoResultEntity)
+    private readonly lottoResultRepository: Repository<LottoResultEntity>,
 
-    @InjectRepository(LottoSearch)
-    private readonly lottoSearchRepository: Repository<LottoSearch>,
+    @InjectRepository(LottoSearchEntity)
+    private readonly lottoSearchRepository: Repository<LottoSearchEntity>,
   ) {}
 
   async saveLotto(drwNoStart: number, drwNoEnd: number) {
@@ -41,7 +40,7 @@ export class LottoService {
     });
 
     const lottoSearchList = lottoResultList
-      .map((result) => LottoSearch.transResultToSearch(result))
+      .map((result) => LottoSearchEntity.transResultToSearch(result))
       .flat();
 
     if (lottoResultList.length !== lottoSearchList.length / 7) {
@@ -74,15 +73,15 @@ export class LottoService {
         ),
     );
 
-    const lottoResult = LottoResult.parserByHtml(getLottoResultHtml);
+    const lottoResult = LottoResultEntity.parserByHtml(getLottoResultHtml);
     return lottoResult;
   }
 
-  async saveLottoResult(lottoResult: LottoResult[]) {
+  async saveLottoResult(lottoResult: LottoResultEntity[]) {
     return await this.lottoResultRepository.save(lottoResult);
   }
 
-  async saveLottoSearch(lottoSearch: LottoSearch[]) {
+  async saveLottoSearch(lottoSearch: LottoSearchEntity[]) {
     return await this.lottoSearchRepository.save(lottoSearch);
   }
 
@@ -127,7 +126,7 @@ export class LottoService {
     };
   }
 
-  findQuery(select: SelectLottoDto): SelectQueryBuilder<LottoResult> {
+  findQuery(select: SelectLottoDto): SelectQueryBuilder<LottoResultEntity> {
     /**
      * 임의로 로또 당첨 번호 1~6번은 1의 가중치 보너스 번호는 10의 가중치를 부여한다.
      * 가중치에 따라 1등~5등을 판단
@@ -137,20 +136,14 @@ export class LottoService {
      * acc : 4 -> 4등
      * acc : 3 -> 5등
      */
+    const selectNumbers = [...Object.values(select)] as number[];
     const subQuery = (subQuery: SelectQueryBuilder<any>) => {
       return subQuery
         .select('search.drw_no', 'drw_no')
         .addSelect('sum(search.acc)', 'rank')
         .from('lotto_search', 'search')
         .where('search.drwt_no IN (:...nums)', {
-          nums: [
-            select.drwtNo1,
-            select.drwtNo2,
-            select.drwtNo3,
-            select.drwtNo4,
-            select.drwtNo5,
-            select.drwtNo6,
-          ],
+          nums: selectNumbers,
         })
         .groupBy('search.drw_no')
         .having(

@@ -1,25 +1,21 @@
 import { Module } from '@nestjs/common';
 import { LottoModule } from './lotto/lotto.module';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataBaseConfigModule } from './database/database.module';
-import { DataBaseConfigService } from './database/database.service';
+import { DataBaseModule } from './database/database.module';
 import { UtilsModule } from './utils/utils.module';
 import { AppInitService } from '@/app-init.service';
+import loadConfiguration from '@/config/loadConfiguration';
 
 @Module({
   imports: [
-    LottoModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV}`,
-    }),
-    TypeOrmModule.forRootAsync({
-      imports: [DataBaseConfigModule],
-      useClass: DataBaseConfigService,
-      inject: [DataBaseConfigService],
+      //envFilePath: `.env.${process.env.NODE_ENV}`,
+      load: [loadConfiguration],
     }),
     UtilsModule,
+    DataBaseModule,
+    LottoModule,
   ],
   providers: [AppInitService],
 })

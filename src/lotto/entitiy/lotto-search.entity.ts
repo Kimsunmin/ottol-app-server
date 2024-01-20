@@ -1,8 +1,8 @@
 import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
-import { LottoResult } from './lotto-result.entity';
+import { LottoResultEntity } from './lotto-result.entity';
 
-@Entity()
-export class LottoSearch extends BaseEntity {
+@Entity({ name: 'lotto_search' })
+export class LottoSearchEntity extends BaseEntity {
   @PrimaryColumn()
   drwNo: number; // 로또 회차
 
@@ -48,7 +48,9 @@ export class LottoSearch extends BaseEntity {
     };
   }
 
-  static transResultToSearch(lottoResult: LottoResult): LottoSearch[] {
+  static transResultToSearch(
+    lottoResult: LottoResultEntity,
+  ): LottoSearchEntity[] {
     const mapper = this.getMapper();
     const keys = Object.keys(mapper);
 
