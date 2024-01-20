@@ -9,12 +9,6 @@
         "swcrcPath": "./.swcrc"
       }
     },
-    "deleteOutDir": true,
-    "assets": [
-      {
-        "include": "../resources/*.yaml",
-        "outDir": "./dist/resources/."
-      }
-    ]
+    "deleteOutDir": true
   }
 }

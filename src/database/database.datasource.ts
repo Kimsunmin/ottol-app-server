@@ -41,7 +41,6 @@ export const typeormModuleOptionFactory = async (
 };
 
 export const dataSourceFactory: TypeOrmDataSourceFactory = async (options) => {
-  console.log(options);
   if (!(options?.type === 'postgres')) {
     throw new Error('Database type is not postgres, Check your database type');
   }
