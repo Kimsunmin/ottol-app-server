@@ -1,29 +1,60 @@
 import loadConfiguration, {
-  Environment,
+  Configuration,
   findDirectoryForFile,
 } from '@/config/loadConfiguration';
-import { NotFoundException } from '@nestjs/common';
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import * as dotenv from 'dotenv';
+import {
+  TypeOrmDataSourceFactory,
+  TypeOrmModuleOptions,
+} from '@nestjs/typeorm';
 import { resolve } from 'path';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
-const datasourceFactory = async () => {
-  const env = Environment.parse(process.env.NODE_ENV);
-  const fileName = `.env.${env}`;
+export const typeormModuleOptionFactory = async (
+  config: Configuration &
+    Required<{ entities: TypeOrmModuleOptions['entities'] }>,
+) => {
+  const {
+    DB_TYPE,
+    DB_HOST,
+    DB_PORT,
+    DB_USERNAME,
+    DB_PASSWORD,
+    DB_DATABASE,
+    entities,
+  } = config;
 
-  const fileDirectory = await findDirectoryForFile(fileName);
-  if (!fileDirectory) {
-    throw new NotFoundException(`${fileName} is not found`);
+  const options: TypeOrmModuleOptions = {
+    type: DB_TYPE,
+    host: DB_HOST,
+    port: Number(DB_PORT),
+    username: DB_USERNAME,
+    password: DB_PASSWORD,
+    database: DB_DATABASE,
+    synchronize: false,
+    entities: entities,
+    namingStrategy: new SnakeNamingStrategy(),
+    logging: true,
+  };
+
+  return options;
+};
+
+export const dataSourceFactory: TypeOrmDataSourceFactory = async (options) => {
+  console.log(options);
+  if (!(options?.type === 'postgres')) {
+    throw new Error('Database type is not postgres, Check your database type');
   }
+  return new DataSource(options);
+};
 
-  const filePath = resolve(fileDirectory, fileName);
-  dotenv.config({
-    path: filePath,
-  });
-
+const datasourceFactoryForMigrations = async () => {
   const config = await loadConfiguration();
+
+  const packageJsonDirectory = await findDirectoryForFile('package.json');
+  if (!packageJsonDirectory) {
+    throw new Error('Colud not find package.json directory');
+  }
 
   const options = {
     type: config.DB_TYPE,
@@ -32,6 +63,7 @@ const datasourceFactory = async () => {
     port: config.DB_PORT,
     host: config.DB_HOST,
     database: config.DB_DATABASE,
+    entities: [resolve(packageJsonDirectory, '**', '*.entity.ts')],
     autoLoadEntities: true,
     namingStrategy: new SnakeNamingStrategy(),
   } as TypeOrmModuleOptions;
@@ -39,4 +71,4 @@ const datasourceFactory = async () => {
   return new DataSource({ ...options } as DataSourceOptions);
 };
 
-export default datasourceFactory();
+export default datasourceFactoryForMigrations();

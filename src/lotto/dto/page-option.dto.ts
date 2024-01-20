@@ -1,6 +1,6 @@
 import { IsEnum, IsIn, IsInt, IsOptional, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { SelectLottoDto } from '../dto/select-lotto.dto';
+import { SelectLottoDto } from '../lotto.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PageOptionDto extends SelectLottoDto {

@@ -1,6 +1,8 @@
+import { NotFoundException } from '@nestjs/common';
 import { existsSync } from 'fs';
 import { delimiter, resolve } from 'path';
 import * as z from 'zod';
+import * as dotenv from 'dotenv';
 
 export const Environment = z.enum(['prod', 'dev']).catch('dev').default('dev');
 
@@ -42,6 +44,19 @@ export async function findDirectoryForFile(
 
 export default async function loadConfiguration() {
   const env = Environment.parse(process.env.NODE_ENV);
+  const fileName = `.env.${env}`;
+
+  const fileDirectory = await findDirectoryForFile(fileName);
+  if (!fileDirectory) {
+    throw new NotFoundException(`${fileName} is not found`);
+  }
+
+  const filePath = resolve(fileDirectory, fileName);
+  console.log(filePath);
+  dotenv.config({
+    path: filePath,
+    override: true,
+  });
 
   const configuration = Configuration.parse({
     env,
@@ -54,6 +69,5 @@ export default async function loadConfiguration() {
     DB_DATABASE: process.env.DB_DATABASE,
     LOTTO_API_BASE_URL: process.env.LOTTO_API_BASE_URL,
   }) satisfies Configuration;
-
   return configuration;
 }
