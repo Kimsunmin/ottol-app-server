@@ -44,19 +44,21 @@ export async function findDirectoryForFile(
 
 export default async function loadConfiguration() {
   const env = Environment.parse(process.env.NODE_ENV);
-  const fileName = `.env.${env}`;
 
-  const fileDirectory = await findDirectoryForFile(fileName);
-  if (!fileDirectory) {
-    throw new NotFoundException(`${fileName} is not found`);
+  if (env !== 'prod') {
+    const fileName = `.env.${env}`;
+
+    const fileDirectory = await findDirectoryForFile(fileName);
+    if (!fileDirectory) {
+      throw new NotFoundException(`${fileName} is not found`);
+    }
+
+    const filePath = resolve(fileDirectory, fileName);
+    dotenv.config({
+      path: filePath,
+      override: true,
+    });
   }
-
-  const filePath = resolve(fileDirectory, fileName);
-  console.log(filePath);
-  dotenv.config({
-    path: filePath,
-    override: true,
-  });
 
   const configuration = Configuration.parse({
     env,
