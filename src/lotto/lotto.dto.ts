@@ -24,57 +24,36 @@ export const LottoExelKeys = [
   'bnusNo',
 ] as const;
 
-const SelectLottoSchema = extendApi(
-  z
-    .object({
-      drwtNo1: extendApi(z.coerce.number().min(1).max(45), {
-        description: 'Select lotto number 1',
-      }),
-      drwtNo2: extendApi(z.coerce.number().min(1).max(45), {
-        description: 'Select lotto number 2',
-      }),
-      drwtNo3: extendApi(z.coerce.number().min(1).max(45), {
-        description: 'Select lotto number 3',
-      }),
-      drwtNo4: extendApi(z.coerce.number().min(1).max(45), {
-        description: 'Select lotto number 4',
-      }),
-      drwtNo5: extendApi(z.coerce.number().min(1).max(45), {
-        description: 'Select lotto number 5',
-      }),
-      drwtNo6: extendApi(z.coerce.number().min(1).max(45), {
-        description: 'Select lotto number 6',
-      }),
-    })
-    .superRefine((arg, ctx) => {
-      const drwtNoArr = Object.values(arg);
-
-      for (const selectDrwtNo of drwtNoArr) {
-        const duplicatedCount = drwtNoArr.filter(
-          (drwtNo) => selectDrwtNo === drwtNo,
-        ).length;
-
-        if (duplicatedCount > 1) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'Selected lotto numbers cannot be dulicated',
-            fatal: true,
-            path: [selectDrwtNo],
-          });
-
-          return z.NEVER;
-        }
-      }
+export const CommonLottoSchema = extendApi(
+  z.object({
+    drwtNo1: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 1',
     }),
+    drwtNo2: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 2',
+    }),
+    drwtNo3: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 3',
+    }),
+    drwtNo4: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 4',
+    }),
+    drwtNo5: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 5',
+    }),
+    drwtNo6: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto number 6',
+    }),
+  }),
   {
-    description: 'Select lotto numbers by user',
+    description: 'Common lotto selection numbers',
   },
 );
 
-export type SelectLotto = z.infer<typeof SelectLottoSchema>;
+export type CommonLotto = z.infer<typeof CommonLottoSchema>;
 
 export class SelectLottoDto extends createZodDto(
-  extendApi(SelectLottoSchema, { description: '로또 선택 번호' }),
+  extendApi(CommonLottoSchema, { description: '로또 선택 번호' }),
 ) {}
 
 export const CreateLottoSchema = extendApi(

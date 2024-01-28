@@ -8,6 +8,7 @@ import {
 } from '@/database/database.datasource';
 import { LottoResultEntity } from '@/lotto/lotto-result.entity';
 import { LottoSearchEntity } from '@/lotto/lotto-search.entity';
+import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
 
 @Module({
   imports: [
@@ -40,7 +41,11 @@ import { LottoSearchEntity } from '@/lotto/lotto-search.entity';
         return await typeormModuleOptionFactory({
           env,
           ...database,
-          entities: [LottoResultEntity, LottoSearchEntity],
+          entities: [
+            LottoResultEntity,
+            LottoSearchEntity,
+            LottoSearchHisoryEntity,
+          ],
         });
       },
       dataSourceFactory,

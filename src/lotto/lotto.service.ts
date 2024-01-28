@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  NotImplementedException,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
@@ -65,8 +66,7 @@ export class LottoService {
             method: 'allWinExel',
             gubun: 'byWin',
             drwNoStart: dto.drwNoStart,
-            //drwNoEnd: dto.drwNoEnd,
-            drwNoEnd: 3,
+            drwNoEnd: dto.drwNoEnd,
           },
         })
         .pipe(
@@ -77,22 +77,47 @@ export class LottoService {
         ),
     );
 
-    const html = cheerio.load(lottoResultHtml);
-    const tr = html('tr')
-      .filter((i) => i > 2)
-      .map(function () {
-        return html(this)
+    const lottoResult = this.htmlToLottoResult(lottoResultHtml);
+    return lottoResult;
+  }
+
+  private htmlToLottoResult(htmlString: string) {
+    const html = cheerio.load(htmlString);
+    const useData: LottoResultEntity[] = [];
+
+    const tr = html('tr');
+    tr.each(function (i, el) {
+      // 처음 2줄은 생략
+      if (i > 2) {
+        const excelObj: any = {};
+        //const excelColArr = Object.keys(LottoResult.prototype);
+        //console.log(excelColArr);
+
+        html(this)
           .children('td')
           .filter(function () {
+            // 첫번째 당첨 연도 열 제외
             return !html(this).attr('rowspan');
-          });
-      })
-      .toArray();
+          })
+          .each(function (i, el) {
+            const val = html(this).text();
 
-    console.log(tr);
-    throw new Error('not run');
-    const lottoResult = LottoResultEntity.parserByHtml(lottoResultHtml);
-    return lottoResult;
+            // --원, --등, 및 불필요 문자 제거
+            excelObj[LottoExelKeys[i]] = val.replaceAll(
+              new RegExp(',|�|[가-힣]', 'g'),
+              '',
+            );
+          });
+
+        useData.push(excelObj);
+      }
+    });
+
+    return useData;
+  }
+
+  private LottoResultToSearch(lottoResult: LottoResultEntity) {
+    throw new NotImplementedException();
   }
 
   async saveLottoResult(lottoResult: LottoResultEntity[]) {
@@ -135,11 +160,11 @@ export class LottoService {
 
     const result = await find.getRawOne();
 
-    this.lottoSearchHistoryRepository.save(
-      this.lottoSearchHistoryRepository.create({
-        drwNo: result.drw_no,
-      }),
-    );
+    // this.lottoSearchHistoryRepository.save(
+    //   this.lottoSearchHistoryRepository.create({
+    //     drwNo: result.drw_no,
+    //   }),
+    // );
 
     return {
       result: result,
