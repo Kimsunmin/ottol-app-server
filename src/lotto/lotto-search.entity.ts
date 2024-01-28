@@ -3,10 +3,10 @@ import { LottoResultEntity } from './lotto-result.entity';
 
 @Entity({ name: 'lotto_search' })
 export class LottoSearchEntity extends BaseEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ comment: '로또 회차' })
   drwNo: number; // 로또 회차
 
-  @Column()
+  @Column({ comment: '로또 번호 정보 타입' })
   drwtNoType: string; // 로또 번호 정보[1,2,3,4,5,6,보너스]
 
   @Column()

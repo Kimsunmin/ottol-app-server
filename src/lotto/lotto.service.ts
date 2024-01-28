@@ -6,16 +6,16 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { SelectLottoDto } from './lotto.dto';
-import { LottoResultEntity } from './entitiy/lotto-result.entity';
-import { LottoSearchEntity } from './entitiy/lotto-search.entity';
+import { LottoExelKeys, SelectLottoDto } from './lotto.dto';
+import { LottoResultEntity } from './lotto-result.entity';
+import { LottoSearchEntity } from './lotto-search.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UtilsService } from '../utils/utils.service';
 import { PageOptionDto } from '../lotto/dto/page-option.dto';
 import { PageMetaDto } from '../lotto/dto/page-meta.dto';
 import { PageDto } from '../lotto/dto/page.dto';
 import * as cheerio from 'cheerio';
 import { catchError, firstValueFrom, map } from 'rxjs';
+import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
 
 @Injectable()
 export class LottoService {
@@ -28,6 +28,9 @@ export class LottoService {
 
     @InjectRepository(LottoSearchEntity)
     private readonly lottoSearchRepository: Repository<LottoSearchEntity>,
+
+    @InjectRepository(LottoSearchHisoryEntity)
+    private readonly lottoSearchHistoryRepository: Repository<LottoSearchHisoryEntity>,
   ) {}
 
   async saveLotto(drwNoStart: number, drwNoEnd: number) {
@@ -55,14 +58,15 @@ export class LottoService {
   }
 
   async readLottoResult(dto: { drwNoStart: number; drwNoEnd: number }) {
-    const getLottoResultHtml = await firstValueFrom(
+    const lottoResultHtml = await firstValueFrom(
       this.httpService
         .get(this.confingService.get<string>('LOTTO_API_BASE_URL'), {
           params: {
             method: 'allWinExel',
             gubun: 'byWin',
             drwNoStart: dto.drwNoStart,
-            drwNoEnd: dto.drwNoEnd,
+            //drwNoEnd: dto.drwNoEnd,
+            drwNoEnd: 3,
           },
         })
         .pipe(
@@ -73,7 +77,21 @@ export class LottoService {
         ),
     );
 
-    const lottoResult = LottoResultEntity.parserByHtml(getLottoResultHtml);
+    const html = cheerio.load(lottoResultHtml);
+    const tr = html('tr')
+      .filter((i) => i > 2)
+      .map(function () {
+        return html(this)
+          .children('td')
+          .filter(function () {
+            return !html(this).attr('rowspan');
+          });
+      })
+      .toArray();
+
+    console.log(tr);
+    throw new Error('not run');
+    const lottoResult = LottoResultEntity.parserByHtml(lottoResultHtml);
     return lottoResult;
   }
 
@@ -116,6 +134,13 @@ export class LottoService {
       .limit(1);
 
     const result = await find.getRawOne();
+
+    this.lottoSearchHistoryRepository.save(
+      this.lottoSearchHistoryRepository.create({
+        drwNo: result.drw_no,
+      }),
+    );
+
     return {
       result: result,
       meta: {

@@ -1,7 +1,4 @@
-import loadConfiguration, {
-  Configuration,
-  findDirectoryForFile,
-} from '@/config/loadConfiguration';
+import loadConfiguration, { Configuration } from '@/config/loadConfiguration';
 import {
   TypeOrmDataSourceFactory,
   TypeOrmModuleOptions,
@@ -50,11 +47,8 @@ export const dataSourceFactory: TypeOrmDataSourceFactory = async (options) => {
 const datasourceFactoryForMigrations = async () => {
   const config = await loadConfiguration();
 
-  // const findFileName = config.env !== 'prod' ? 'package.json' : 'main.js';
-  // const packageJsonDirectory = await findDirectoryForFile(findFileName);
-  // if (!packageJsonDirectory) {
-  //   throw new Error(`Colud not find ${findFileName} directory`);
-  // }
+  const entitiesFiles = resolve(__dirname, '..', '**', '*.entity.ts');
+  const migrationsFiles = resolve(__dirname, '..', '..', 'migrations', '*.ts');
 
   const options = {
     type: config.DB_TYPE,
@@ -63,8 +57,8 @@ const datasourceFactoryForMigrations = async () => {
     port: config.DB_PORT,
     host: config.DB_HOST,
     database: config.DB_DATABASE,
-    entities: [resolve(process.cwd(), '**', '*.entity.ts')],
-    autoLoadEntities: true,
+    entities: [entitiesFiles],
+    migrations: [migrationsFiles],
     namingStrategy: new SnakeNamingStrategy(),
   } as TypeOrmModuleOptions;
 

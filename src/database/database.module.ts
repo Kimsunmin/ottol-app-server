@@ -6,8 +6,8 @@ import {
   typeormModuleOptionFactory,
   dataSourceFactory,
 } from '@/database/database.datasource';
-import { LottoResultEntity } from '@/lotto/entitiy/lotto-result.entity';
-import { LottoSearchEntity } from '@/lotto/entitiy/lotto-search.entity';
+import { LottoResultEntity } from '@/lotto/lotto-result.entity';
+import { LottoSearchEntity } from '@/lotto/lotto-search.entity';
 
 @Module({
   imports: [
