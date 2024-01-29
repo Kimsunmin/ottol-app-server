@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LottoSearchEntity } from './lotto-search.entity';
 import { LottoResultEntity } from './lotto-result.entity';
 import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
+import { LottoTaskService } from '@/lotto/lotto.task.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
     ]),
   ],
   controllers: [LottoController],
-  providers: [LottoService],
+  providers: [LottoService, LottoTaskService],
   exports: [LottoService],
 })
 export class LottoModule {}
