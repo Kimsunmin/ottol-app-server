@@ -45,6 +45,9 @@ export const CommonLottoSchema = extendApi(
     drwtNo6: extendApi(z.coerce.number().min(1).max(45), {
       description: 'Select lotto number 6',
     }),
+    bnusNo: extendApi(z.coerce.number().min(1).max(45), {
+      description: 'Select lotto bnus number',
+    }),
   }),
   {
     description: 'Common lotto selection numbers',
@@ -54,7 +57,7 @@ export const CommonLottoSchema = extendApi(
 export type CommonLotto = z.infer<typeof CommonLottoSchema>;
 
 export const SelectLottoSchema = extendApi(
-  CommonLottoSchema.superRefine((arg, ctx) => {
+  CommonLottoSchema.omit({ bnusNo: true }).superRefine((arg, ctx) => {
     const selectLottoNumbers = Object.values(arg);
     const duplicateNumbers = selectLottoNumbers.filter((lottoNumber, index) => {
       return index !== selectLottoNumbers.indexOf(lottoNumber);
@@ -72,3 +75,46 @@ export const SelectLottoSchema = extendApi(
 );
 
 export class SelectLottoDto extends createZodDto(SelectLottoSchema) {}
+
+export const LottoResultSchema = extendApi(
+  z
+    .object({
+      drwNo: extendApi(z.coerce.number(), { description: '로또 추첨 회차' }),
+      drwNoDate: extendApi(z.coerce.number(), {
+        description: '로또 추첨 회차',
+      }),
+      winPayRank1: extendApi(z.coerce.number(), {
+        description: '1등 당첨 금액',
+      }),
+      winnerRank1: extendApi(z.coerce.number(), {
+        description: '1등 당첨 인원',
+      }),
+      winPayRank2: extendApi(z.coerce.number(), {
+        description: '2등 당첨 금액',
+      }),
+      winnerRank2: extendApi(z.coerce.number(), {
+        description: '2등 당첨 인원',
+      }),
+      winPayRank3: extendApi(z.coerce.number(), {
+        description: '3등 당첨 금액',
+      }),
+      winnerRank3: extendApi(z.coerce.number(), {
+        description: '3등 당첨 인원',
+      }),
+      winPayRank4: extendApi(z.coerce.number(), {
+        description: '4등 당첨 금액',
+      }),
+      winnerRank4: extendApi(z.coerce.number(), {
+        description: '4등 당첨 인원',
+      }),
+      winPayRank5: extendApi(z.coerce.number(), {
+        description: '5등 당첨 금액',
+      }),
+      winnerRank5: extendApi(z.coerce.number(), {
+        description: '5등 당첨 인원',
+      }),
+    })
+    .merge(CommonLottoSchema),
+);
+
+export type LottoResult = z.infer<typeof LottoResultSchema>;

@@ -17,11 +17,11 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
 
+  patchNestjsSwagger();
   const swaagerConfig = new DocumentBuilder()
     .setTitle('Ottol api swaager')
     .setVersion('1.0')
     .build();
-  patchNestjsSwagger();
   const swaggerDocument = SwaggerModule.createDocument(app, swaagerConfig, {});
   SwaggerModule.setup('/swagger-html', app, swaggerDocument, {
     jsonDocumentUrl: '/swagger-json',

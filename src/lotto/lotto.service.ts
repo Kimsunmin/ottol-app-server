@@ -7,7 +7,7 @@ import {
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { LottoExelKeys, SelectLottoDto } from './lotto.dto';
+import { LottoExelKeys, LottoResultSchema, SelectLottoDto } from './lotto.dto';
 import { LottoResultEntity } from './lotto-result.entity';
 import { LottoSearchEntity } from './lotto-search.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -66,7 +66,8 @@ export class LottoService {
             method: 'allWinExel',
             gubun: 'byWin',
             drwNoStart: dto.drwNoStart,
-            drwNoEnd: dto.drwNoEnd,
+            //drwNoEnd: dto.drwNoEnd,
+            drwNoEnd: 3,
           },
         })
         .pipe(
@@ -85,33 +86,60 @@ export class LottoService {
     const html = cheerio.load(htmlString);
     const useData: LottoResultEntity[] = [];
 
-    const tr = html('tr');
-    tr.each(function (i, el) {
-      // 처음 2줄은 생략
+    const lottoResultKeys = LottoResultSchema.keyof().options;
+    console.log('1---------------------------------------------------------');
+
+    const lottoResultList = [];
+    const rows = html('tr');
+    rows.each((i, el) => {
+      // 1,2번째 row는 컬럼명과 타이틀이 들어가있어 건너뛴다.
       if (i > 2) {
-        const excelObj: any = {};
-        //const excelColArr = Object.keys(LottoResult.prototype);
-        //console.log(excelColArr);
+        // 첫번째 컬럼은 년도 데이터로 제거한다.
+        const firstColunm = html(el).children('td').first();
+        if (firstColunm.attr('rowspan')) {
+          firstColunm.remove();
+        }
 
-        html(this)
+        const result = {};
+        html(el)
           .children('td')
-          .filter(function () {
-            // 첫번째 당첨 연도 열 제외
-            return !html(this).attr('rowspan');
-          })
-          .each(function (i, el) {
-            const val = html(this).text();
-
-            // --원, --등, 및 불필요 문자 제거
-            excelObj[LottoExelKeys[i]] = val.replaceAll(
-              new RegExp(',|�|[가-힣]', 'g'),
-              '',
-            );
+          .each((i, el) => {
+            result[lottoResultKeys[i]] = html(el)
+              .text()
+              .replaceAll(new RegExp(',|�|[가-힣]', 'g'), '');
           });
-
-        useData.push(excelObj);
+        console.log(result);
+        lottoResultList.push(result);
       }
     });
+
+    // const tr = html('tr');
+    // tr.each(function (i, el) {
+    //   // 처음 2줄은 생략
+    //   if (i > 2) {
+    //     const excelObj: any = {};
+    //     //const excelColArr = Object.keys(LottoResult.prototype);
+    //     //console.log(excelColArr);
+
+    //     html(this)
+    //       .children('td')
+    //       .filter(function () {
+    //         // 첫번째 당첨 연도 열 제외
+    //         return !html(this).attr('rowspan');
+    //       })
+    //       .each(function (i, el) {
+    //         const text = html(this).text();
+
+    //         // --원, --등, 및 불필요 문자 제거
+    //         excelObj[LottoExelKeys[i]] = text.replaceAll(
+    //           new RegExp(',|�|[가-힣]', 'g'),
+    //           '',
+    //         );
+    //       });
+
+    //     useData.push(excelObj);
+    //   }
+    // });
 
     return useData;
   }
