@@ -83,35 +83,35 @@ export const LottoResultSchema = extendApi(
       drwNoDate: extendApi(z.coerce.number(), {
         description: '로또 추첨 회차',
       }),
-      winPayRank1: extendApi(z.coerce.number(), {
-        description: '1등 당첨 금액',
-      }),
       winnerRank1: extendApi(z.coerce.number(), {
         description: '1등 당첨 인원',
       }),
-      winPayRank2: extendApi(z.coerce.number(), {
-        description: '2등 당첨 금액',
+      winPayRank1: extendApi(z.coerce.number(), {
+        description: '1등 당첨 금액',
       }),
       winnerRank2: extendApi(z.coerce.number(), {
         description: '2등 당첨 인원',
       }),
-      winPayRank3: extendApi(z.coerce.number(), {
-        description: '3등 당첨 금액',
+      winPayRank2: extendApi(z.coerce.number(), {
+        description: '2등 당첨 금액',
       }),
       winnerRank3: extendApi(z.coerce.number(), {
         description: '3등 당첨 인원',
       }),
-      winPayRank4: extendApi(z.coerce.number(), {
-        description: '4등 당첨 금액',
+      winPayRank3: extendApi(z.coerce.number(), {
+        description: '3등 당첨 금액',
       }),
       winnerRank4: extendApi(z.coerce.number(), {
         description: '4등 당첨 인원',
       }),
-      winPayRank5: extendApi(z.coerce.number(), {
-        description: '5등 당첨 금액',
+      winPayRank4: extendApi(z.coerce.number(), {
+        description: '4등 당첨 금액',
       }),
       winnerRank5: extendApi(z.coerce.number(), {
         description: '5등 당첨 인원',
+      }),
+      winPayRank5: extendApi(z.coerce.number(), {
+        description: '5등 당첨 금액',
       }),
     })
     .merge(CommonLottoSchema),
