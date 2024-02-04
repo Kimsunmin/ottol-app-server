@@ -21,6 +21,6 @@ import { LottoTaskService } from '@/lotto/lotto.task.service';
   ],
   controllers: [LottoController],
   providers: [LottoService, LottoTaskService],
-  exports: [LottoService],
+  exports: [LottoService, LottoTaskService],
 })
 export class LottoModule {}

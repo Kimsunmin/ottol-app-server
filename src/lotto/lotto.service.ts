@@ -1,32 +1,21 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import {
-  CommonLottoSchema,
-  LottoResultSchema,
-  SelectLottoDto,
-} from './lotto.dto';
+import { SelectLottoDto } from './lotto.dto';
 import { LottoResultEntity } from './lotto-result.entity';
 import { LottoSearchEntity } from './lotto-search.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PageOptionDto } from '../lotto/dto/page-option.dto';
 import { PageMetaDto } from '../lotto/dto/page-meta.dto';
 import { PageDto } from '../lotto/dto/page.dto';
-import * as cheerio from 'cheerio';
-import { catchError, firstValueFrom, map } from 'rxjs';
 import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
-import { error } from 'console';
 
 @Injectable()
 export class LottoService {
   constructor(
     private readonly httpService: HttpService,
-    private readonly confingService: ConfigService,
+    private readonly configService: ConfigService,
 
     @InjectRepository(LottoResultEntity)
     private readonly lottoResultRepository: Repository<LottoResultEntity>,
@@ -37,110 +26,6 @@ export class LottoService {
     @InjectRepository(LottoSearchHisoryEntity)
     private readonly lottoSearchHistoryRepository: Repository<LottoSearchHisoryEntity>,
   ) {}
-
-  async saveLotto(drwNoStart: number, drwNoEnd: number) {
-    console.log(`excel_download_save... start:${drwNoStart}, end:${drwNoEnd}`);
-    console.time('excel_download_save');
-
-    const lottoResultList = await this.readLottoResult({
-      drwNoStart,
-      drwNoEnd,
-    });
-
-    const lottoSearchList = lottoResultList
-      .map((result) => this.lottoResultToSearch(result))
-      .flat();
-
-    if (lottoResultList.length !== lottoSearchList.length / 7) {
-      throw new ConflictException('');
-    }
-
-    const lottoResultSaveResult = await this.saveLottoResult(
-      lottoResultList,
-    ).catch((err) => console.error(err));
-    await this.saveLottoSearch(lottoSearchList);
-
-    console.timeEnd('excel_download_save');
-    return lottoResultSaveResult;
-  }
-
-  async readLottoResult(dto: { drwNoStart: number; drwNoEnd: number }) {
-    const lottoResultHtml = await firstValueFrom(
-      this.httpService
-        .get(this.confingService.get<string>('LOTTO_API_BASE_URL'), {
-          params: {
-            method: 'allWinExel',
-            gubun: 'byWin',
-            drwNoStart: dto.drwNoStart,
-            drwNoEnd: dto.drwNoEnd,
-          },
-        })
-        .pipe(
-          map((res) => res.data),
-          catchError((err) => {
-            throw err;
-          }),
-        ),
-    );
-
-    const lottoResult = this.htmlToLottoResult(lottoResultHtml);
-    return lottoResult;
-  }
-
-  private htmlToLottoResult(htmlString: string) {
-    const html = cheerio.load(htmlString);
-
-    const lottoResultKeys = LottoResultSchema.keyof().options;
-    const lottoResultList = [];
-    const rows = html('tr');
-    rows.each((i, el) => {
-      // 1,2번째 row는 컬럼명과 타이틀이 들어가있어 건너뛴다.
-      if (i > 2) {
-        // 첫번째 컬럼은 년도 데이터로 제거한다.
-        const firstColunm = html(el).children('td').first();
-        if (firstColunm.attr('rowspan')) {
-          firstColunm.remove();
-        }
-        const result = {};
-        html(el)
-          .children('td')
-          .each((i, el) => {
-            result[lottoResultKeys[i]] = html(el)
-              .text()
-              .replaceAll(new RegExp(',|�|[가-힣]', 'g'), '');
-          });
-        lottoResultList.push(result);
-      }
-    });
-
-    return lottoResultList;
-  }
-
-  private lottoResultToSearch(
-    lottoResult: LottoResultEntity,
-  ): LottoSearchEntity[] {
-    const commonLottoKeys = CommonLottoSchema.keyof().options;
-    const { drwNo } = lottoResult;
-
-    const lottoSearchList = commonLottoKeys.map((key) => {
-      return this.lottoSearchRepository.create({
-        drwNo,
-        drwtNoType: key,
-        acc: key === 'bnusNo' ? 10 : 1,
-        drwtNo: lottoResult[key],
-      });
-    });
-
-    return lottoSearchList;
-  }
-
-  async saveLottoResult(lottoResult: LottoResultEntity[]) {
-    return await this.lottoResultRepository.save(lottoResult);
-  }
-
-  async saveLottoSearch(lottoSearch: LottoSearchEntity[]) {
-    return await this.lottoSearchRepository.save(lottoSearch);
-  }
 
   async find(select: PageOptionDto): Promise<PageDto<any>> {
     const find = this.findQuery(select);
@@ -214,7 +99,6 @@ export class LottoService {
           'sum(search.acc) > 14 or (sum(search.acc) > 2 and sum(search.acc) < 7)',
         );
     };
-
     const find = this.lottoResultRepository
       .createQueryBuilder('result')
       .select([
@@ -264,34 +148,5 @@ export class LottoService {
 
   async readAllLottoCount() {
     return await this.lottoResultRepository.count();
-  }
-
-  async readLastDrwNoByWeb() {
-    const data = await firstValueFrom(
-      this.httpService
-        .get(this.confingService.get<string>('LOTTO_API_BASE_URL'), {
-          params: {
-            method: 'byWin',
-          },
-        })
-        .pipe(
-          map((res) => res.data),
-          catchError((err) => {
-            throw err;
-          }),
-        ),
-    );
-
-    if (data === '') {
-      throw new NotFoundException('DrwNo not found');
-    }
-
-    const html = cheerio.load(data);
-
-    const lastDrwNoCssSelector =
-      '#article > div:nth-child(2) > div > div.win_result > h4 > strong' as const;
-    const lastDrwNo = html(lastDrwNoCssSelector).text();
-
-    return parseInt(lastDrwNo);
   }
 }
