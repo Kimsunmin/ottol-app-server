@@ -1,5 +1,4 @@
 import { BaseEntity, Column, Entity, PrimaryColumn } from 'typeorm';
-import * as cheerio from 'cheerio';
 
 @Entity({ name: 'lotto_result' })
 export class LottoResultEntity extends BaseEntity {
@@ -61,61 +60,4 @@ export class LottoResultEntity extends BaseEntity {
 
   @Column({ comment: '로또 보너스 추첨 번호' })
   bnusNo: number; // 로또 보너스 번호
-
-  static parserByHtml(htmlData: string): LottoResultEntity[] {
-    const html = cheerio.load(htmlData);
-
-    const useData: LottoResultEntity[] = [];
-
-    const excelColArr = [
-      'drwNo',
-      'drwNoDate',
-      'winnerRank1',
-      'winPayRank1',
-      'winnerRank2',
-      'winPayRank2',
-      'winnerRank3',
-      'winPayRank3',
-      'winnerRank4',
-      'winPayRank4',
-      'winnerRank5',
-      'winPayRank5',
-      'drwtNo1',
-      'drwtNo2',
-      'drwtNo3',
-      'drwtNo4',
-      'drwtNo5',
-      'drwtNo6',
-      'bnusNo',
-    ];
-
-    const tr = html('tr');
-    tr.each(function (i, el) {
-      // 처음 2줄은 생략
-      if (i > 2) {
-        const excelObj: any = {};
-        //const excelColArr = Object.keys(LottoResult.prototype);
-        //console.log(excelColArr);
-
-        html(this)
-          .children('td')
-          .filter(function () {
-            // 첫번째 당첨 연도 열 제외
-            return !html(this).attr('rowspan');
-          })
-          .each(function (i, el) {
-            const val = html(this).text();
-
-            // --원, --등, 및 불필요 문자 제거
-            excelObj[excelColArr[i]] = val.replaceAll(
-              new RegExp(',|�|[가-힣]', 'g'),
-              '',
-            );
-          });
-
-        useData.push(excelObj);
-      }
-    });
-    return useData;
-  }
 }

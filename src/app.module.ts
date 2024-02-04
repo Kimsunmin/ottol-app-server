@@ -10,7 +10,6 @@ import loadConfiguration from '@/config/loadConfiguration';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      //envFilePath: `.env.${process.env.NODE_ENV}`,
       load: [loadConfiguration],
     }),
     UtilsModule,

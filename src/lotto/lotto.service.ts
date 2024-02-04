@@ -1,89 +1,31 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { SelectLottoDto } from './lotto.dto';
-import { LottoResultEntity } from './entitiy/lotto-result.entity';
-import { LottoSearchEntity } from './entitiy/lotto-search.entity';
+import { LottoResultEntity } from './lotto-result.entity';
+import { LottoSearchEntity } from './lotto-search.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UtilsService } from '../utils/utils.service';
 import { PageOptionDto } from '../lotto/dto/page-option.dto';
 import { PageMetaDto } from '../lotto/dto/page-meta.dto';
 import { PageDto } from '../lotto/dto/page.dto';
-import * as cheerio from 'cheerio';
-import { catchError, firstValueFrom, map } from 'rxjs';
+import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
 
 @Injectable()
 export class LottoService {
   constructor(
     private readonly httpService: HttpService,
-    private readonly confingService: ConfigService,
+    private readonly configService: ConfigService,
 
     @InjectRepository(LottoResultEntity)
     private readonly lottoResultRepository: Repository<LottoResultEntity>,
 
     @InjectRepository(LottoSearchEntity)
     private readonly lottoSearchRepository: Repository<LottoSearchEntity>,
+
+    @InjectRepository(LottoSearchHisoryEntity)
+    private readonly lottoSearchHistoryRepository: Repository<LottoSearchHisoryEntity>,
   ) {}
-
-  async saveLotto(drwNoStart: number, drwNoEnd: number) {
-    console.log(`excel_download_save... start:${drwNoStart}, end:${drwNoEnd}`);
-    console.time('excel_download_save');
-
-    const lottoResultList = await this.readLottoResult({
-      drwNoStart,
-      drwNoEnd,
-    });
-
-    const lottoSearchList = lottoResultList
-      .map((result) => LottoSearchEntity.transResultToSearch(result))
-      .flat();
-
-    if (lottoResultList.length !== lottoSearchList.length / 7) {
-      throw new ConflictException('');
-    }
-
-    const lottoResultSaveResult = await this.saveLottoResult(lottoResultList);
-    await this.saveLottoSearch(lottoSearchList);
-
-    console.timeEnd('excel_download_save');
-    return lottoResultSaveResult;
-  }
-
-  async readLottoResult(dto: { drwNoStart: number; drwNoEnd: number }) {
-    const getLottoResultHtml = await firstValueFrom(
-      this.httpService
-        .get(this.confingService.get<string>('LOTTO_API_BASE_URL'), {
-          params: {
-            method: 'allWinExel',
-            gubun: 'byWin',
-            drwNoStart: dto.drwNoStart,
-            drwNoEnd: dto.drwNoEnd,
-          },
-        })
-        .pipe(
-          map((res) => res.data),
-          catchError((err) => {
-            throw err;
-          }),
-        ),
-    );
-
-    const lottoResult = LottoResultEntity.parserByHtml(getLottoResultHtml);
-    return lottoResult;
-  }
-
-  async saveLottoResult(lottoResult: LottoResultEntity[]) {
-    return await this.lottoResultRepository.save(lottoResult);
-  }
-
-  async saveLottoSearch(lottoSearch: LottoSearchEntity[]) {
-    return await this.lottoSearchRepository.save(lottoSearch);
-  }
 
   async find(select: PageOptionDto): Promise<PageDto<any>> {
     const find = this.findQuery(select);
@@ -116,6 +58,13 @@ export class LottoService {
       .limit(1);
 
     const result = await find.getRawOne();
+
+    // this.lottoSearchHistoryRepository.save(
+    //   this.lottoSearchHistoryRepository.create({
+    //     drwNo: result.drw_no,
+    //   }),
+    // );
+
     return {
       result: result,
       meta: {
@@ -150,7 +99,6 @@ export class LottoService {
           'sum(search.acc) > 14 or (sum(search.acc) > 2 and sum(search.acc) < 7)',
         );
     };
-
     const find = this.lottoResultRepository
       .createQueryBuilder('result')
       .select([
@@ -200,34 +148,5 @@ export class LottoService {
 
   async readAllLottoCount() {
     return await this.lottoResultRepository.count();
-  }
-
-  async readLastDrwNoByWeb() {
-    const data = await firstValueFrom(
-      this.httpService
-        .get(this.confingService.get<string>('LOTTO_API_BASE_URL'), {
-          params: {
-            method: 'byWin',
-          },
-        })
-        .pipe(
-          map((res) => res.data),
-          catchError((err) => {
-            throw err;
-          }),
-        ),
-    );
-
-    if (data === '') {
-      throw new NotFoundException('DrwNo not found');
-    }
-
-    const html = cheerio.load(data);
-
-    const lastDrwNoCssSelector =
-      '#article > div:nth-child(2) > div > div.win_result > h4 > strong' as const;
-    const lastDrwNo = html(lastDrwNoCssSelector).text();
-
-    return parseInt(lastDrwNo);
   }
 }

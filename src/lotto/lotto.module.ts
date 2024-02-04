@@ -4,19 +4,23 @@ import { LottoController } from './lotto.controller';
 import { LottoService } from './lotto.service';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LottoSearchEntity } from '../lotto/entitiy/lotto-search.entity';
-import { LottoResultEntity } from '../lotto/entitiy/lotto-result.entity';
-import { UtilsModule } from '../utils/utils.module';
+import { LottoSearchEntity } from './lotto-search.entity';
+import { LottoResultEntity } from './lotto-result.entity';
+import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
+import { LottoTaskService } from '@/lotto/lotto.task.service';
 
 @Module({
   imports: [
     HttpModule,
     ScheduleModule.forRoot(),
-    //TypeOrmExModule.forCustomRepository([LottoResultRepository, LottoSearchRepository]),
-    TypeOrmModule.forFeature([LottoResultEntity, LottoSearchEntity]),
+    TypeOrmModule.forFeature([
+      LottoResultEntity,
+      LottoSearchEntity,
+      LottoSearchHisoryEntity,
+    ]),
   ],
   controllers: [LottoController],
-  providers: [LottoService],
-  exports: [LottoService],
+  providers: [LottoService, LottoTaskService],
+  exports: [LottoService, LottoTaskService],
 })
 export class LottoModule {}
