@@ -15,7 +15,7 @@ export class LottoController {
     description: '사용자로 부터 입력받은 로또 번호에 따른 당첨 결과 목록 조회',
   })
   findLotto(@Query() selectLottoDto: PageOptionDto) {
-    return this.lottoService.find(selectLottoDto);
+    return this.lottoService.read(selectLottoDto);
   }
 
   @Get('year/:year')
@@ -28,6 +28,6 @@ export class LottoController {
     @Query() selectLottoDto: SelectLottoDto,
     @Param('year', ParseIntPipe) year: number,
   ) {
-    return this.lottoService.findByYear(selectLottoDto, year);
+    return this.lottoService.readByYear(selectLottoDto, year);
   }
 }

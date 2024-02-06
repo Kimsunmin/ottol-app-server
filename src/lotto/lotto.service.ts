@@ -27,7 +27,7 @@ export class LottoService {
     private readonly lottoSearchHistoryRepository: Repository<LottoSearchHisoryEntity>,
   ) {}
 
-  async find(select: PageOptionDto): Promise<PageDto<any>> {
+  async read(select: PageOptionDto): Promise<PageDto<any>> {
     const find = this.findQuery(select);
     find
       .orderBy('win_pay', select.order)
@@ -45,7 +45,7 @@ export class LottoService {
     return new PageDto(result, pageMetaDto);
   }
 
-  async findByYear(select: SelectLottoDto, year: number) {
+  async readByYear(select: SelectLottoDto, year: number) {
     const nowYear = new Date().getFullYear();
     const age = nowYear - year;
     const ageTwentyYear = nowYear + (19 - age);
@@ -59,11 +59,14 @@ export class LottoService {
 
     const result = await find.getRawOne();
 
-    // this.lottoSearchHistoryRepository.save(
-    //   this.lottoSearchHistoryRepository.create({
-    //     drwNo: result.drw_no,
-    //   }),
-    // );
+    this.lottoSearchHistoryRepository.save(
+      this.lottoSearchHistoryRepository.create({
+        ...select,
+        drwNo: result.drw_no,
+        winRank: result.win_rank,
+        winPay: result.win_pay,
+      }),
+    );
 
     return {
       result: result,

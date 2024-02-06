@@ -2,28 +2,6 @@ import { z } from 'zod';
 import { extendApi } from '@anatine/zod-openapi';
 import { createZodDto } from '@anatine/zod-nestjs';
 
-export const LottoExelKeys = [
-  'drwNo',
-  'drwNoDate',
-  'winnerRank1',
-  'winPayRank1',
-  'winnerRank2',
-  'winPayRank2',
-  'winnerRank3',
-  'winPayRank3',
-  'winnerRank4',
-  'winPayRank4',
-  'winnerRank5',
-  'winPayRank5',
-  'drwtNo1',
-  'drwtNo2',
-  'drwtNo3',
-  'drwtNo4',
-  'drwtNo5',
-  'drwtNo6',
-  'bnusNo',
-] as const;
-
 // 기본 로또 선택 번호 6개
 export const CommonLottoSchema = extendApi(
   z.object({
