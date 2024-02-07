@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  NotImplementedException,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { Repository, SelectQueryBuilder } from 'typeorm';
@@ -151,5 +155,10 @@ export class LottoService {
 
   async readAllLottoCount() {
     return await this.lottoResultRepository.count();
+  }
+
+  // 새로 변경될 코드
+  async createLotto() {
+    throw new NotImplementedException();
   }
 }

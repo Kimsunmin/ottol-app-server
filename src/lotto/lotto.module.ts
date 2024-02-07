@@ -8,6 +8,7 @@ import { LottoSearchEntity } from './lotto-search.entity';
 import { LottoResultEntity } from './lotto-result.entity';
 import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
 import { LottoTaskService } from '@/lotto/lotto.task.service';
+import { LottoMasterEntity } from '@/lotto/lotto-master.entity';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { LottoTaskService } from '@/lotto/lotto.task.service';
       LottoResultEntity,
       LottoSearchEntity,
       LottoSearchHisoryEntity,
+      LottoMasterEntity,
     ]),
   ],
   controllers: [LottoController],
