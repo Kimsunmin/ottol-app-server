@@ -13,6 +13,13 @@ export const DhlotteryLottoResultSchema = z.object({
   winPayRank4: z.coerce.number(),
   winnerRank5: z.coerce.number(),
   winPayRank5: z.coerce.number(),
+  drwtNo1: z.coerce.number(),
+  drwtNo2: z.coerce.number(),
+  drwtNo3: z.coerce.number(),
+  drwtNo4: z.coerce.number(),
+  drwtNo5: z.coerce.number(),
+  drwtNo6: z.coerce.number(),
+  bnusNo: z.coerce.number(),
 });
 
 export type DhlotteryLottoResult = z.infer<typeof DhlotteryLottoResultSchema>;

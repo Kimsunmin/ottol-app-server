@@ -1,3 +1,4 @@
+import { DhlotteryService } from '@/ext/dhlottery/dhlottery.service';
 import { LottoService } from '@/lotto/lotto.service';
 import { LottoTaskService } from '@/lotto/lotto.task.service';
 import { Injectable, OnModuleInit } from '@nestjs/common';
@@ -7,10 +8,11 @@ export class AppInitService implements OnModuleInit {
   constructor(
     private readonly lottoService: LottoService,
     private readonly lottoTaskService: LottoTaskService,
+    private readonly dhlotteryService: DhlotteryService,
   ) {}
 
   async onModuleInit() {
-    const lastDrwNoByWeb = await this.lottoTaskService.getLastDrwNo();
+    const lastDrwNoByWeb = await this.dhlotteryService.getCurrentDrwNo();
     const lastDrwNo = await this.lottoService.readLastDrwNo();
 
     const saveLottoCount = await this.lottoService.readAllLottoCount();
