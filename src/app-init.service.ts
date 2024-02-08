@@ -19,6 +19,7 @@ export class AppInitService implements OnModuleInit {
 
     // 저장된 로또 데이터가 없을 경우
     if (saveLottoCount === 0) {
+      //await this.lottoService.createLotto(1, lastDrwNoByWeb);
       return await this.lottoTaskService.createLotto(1, lastDrwNoByWeb);
     }
 

@@ -30,4 +30,14 @@ export class LottoController {
   ) {
     return this.lottoService.readByYear(selectLottoDto, year);
   }
+
+  @Get('test')
+  @ApiOperation({
+    summary: '로또 번호 당첨 결과 목록 조회',
+    description: '사용자로 부터 입력받은 로또 번호에 따른 당첨 결과 목록 조회',
+  })
+  async findLotto2(@Query() selectLottoDto: SelectLottoDto) {
+    const searchList = await this.lottoService.readLottoSearch(selectLottoDto);
+    return await this.lottoService.readLottoMaster(searchList);
+  }
 }

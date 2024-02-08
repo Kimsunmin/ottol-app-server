@@ -3,8 +3,6 @@ import {
   NotFoundException,
   NotImplementedException,
 } from '@nestjs/common';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { SelectLottoDto } from './lotto.dto';
 import { LottoResultEntity } from './lotto-result.entity';
@@ -14,12 +12,15 @@ import { PageOptionDto } from '../lotto/dto/page-option.dto';
 import { PageMetaDto } from '../lotto/dto/page-meta.dto';
 import { PageDto } from '../lotto/dto/page.dto';
 import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
+import { DhlotteryService } from '@/ext/dhlottery/dhlottery.service';
+import { LottoMasterEntity } from '@/lotto/lotto-master.entity';
+import { LottoDetailEntity } from '@/lotto/lotto-detail.entity';
+import { LottoSearchNewEntity } from '@/lotto/lotto-search-new.entity';
 
 @Injectable()
 export class LottoService {
   constructor(
-    private readonly httpService: HttpService,
-    private readonly configService: ConfigService,
+    private readonly dhlotteryService: DhlotteryService,
 
     @InjectRepository(LottoResultEntity)
     private readonly lottoResultRepository: Repository<LottoResultEntity>,
@@ -29,6 +30,15 @@ export class LottoService {
 
     @InjectRepository(LottoSearchHisoryEntity)
     private readonly lottoSearchHistoryRepository: Repository<LottoSearchHisoryEntity>,
+
+    @InjectRepository(LottoMasterEntity)
+    private readonly lottoMasterRepository: Repository<LottoMasterEntity>,
+
+    @InjectRepository(LottoDetailEntity)
+    private readonly lottoDetailRepository: Repository<LottoDetailEntity>,
+
+    @InjectRepository(LottoSearchNewEntity)
+    private readonly lottoSearchNewRepository: Repository<LottoSearchNewEntity>,
   ) {}
 
   async read(select: PageOptionDto): Promise<PageDto<any>> {
@@ -158,7 +168,129 @@ export class LottoService {
   }
 
   // 새로 변경될 코드
-  async createLotto() {
-    throw new NotImplementedException();
+  async createLotto(drwNoStart: number, drwNoEnd: number) {
+    const getLottoResult = await this.dhlotteryService.getLottoResult(
+      drwNoStart,
+      drwNoEnd,
+    );
+
+    const newLottoMaster = getLottoResult.map((result) => {
+      const {
+        drwNo,
+        drwNoDate,
+        drwtNo1,
+        drwtNo2,
+        drwtNo3,
+        drwtNo4,
+        drwtNo5,
+        drwtNo6,
+        bnusNo,
+      } = result;
+
+      return this.lottoMasterRepository.create({
+        drwNo,
+        drwNoDate,
+        numbers: {
+          1: drwtNo1,
+          2: drwtNo2,
+          3: drwtNo3,
+          4: drwtNo4,
+          5: drwtNo5,
+          6: drwtNo6,
+          bnus: bnusNo,
+        },
+      });
+    });
+
+    await this.lottoMasterRepository.save(newLottoMaster, { reload: false });
+
+    const newLottoDetail = getLottoResult
+      .map((result) => {
+        return new Array(5)
+          .fill({ drwNo: result.drwNo })
+          .map((detail, i) => {
+            const winRank = i + 1;
+
+            detail.winRank = winRank;
+            detail.winNumber = result[`winnerRank${winRank}`];
+            detail.winAmount = result[`winPayRank${winRank}`];
+
+            return this.lottoDetailRepository.create(detail);
+          })
+          .flat();
+      })
+      .flat();
+
+    await this.lottoDetailRepository.save(newLottoDetail, { reload: false });
+
+    const newLottoSearch = newLottoMaster
+      .map((master) => {
+        const keys = Object.keys(master.numbers);
+
+        return keys
+          .map((key) => {
+            const acc = key === 'bnus' ? 10 : 1;
+            const { drwNo, numbers } = master;
+
+            return this.lottoSearchNewRepository.create({
+              drwNo,
+              number: numbers[key],
+              acc,
+            });
+          })
+          .flat();
+      })
+      .flat();
+
+    await this.lottoSearchNewRepository.save(newLottoSearch, { reload: false });
+  }
+
+  async readLottoSearch(selectNumbers: SelectLottoDto) {
+    const numbers = [...Object.values(selectNumbers)] as number[];
+
+    const result = await this.lottoSearchNewRepository
+      .createQueryBuilder('search')
+      .select('search.drw_no', 'drwNo')
+      .addSelect(
+        `case 
+          when sum(search.acc) = 6 then 1
+          when sum(search.acc) = 15 then 2
+          when sum(search.acc) = 5 then 3
+          when sum(search.acc) = 4 then 4
+          when sum(search.acc) = 3 then 5
+          end AS "winRank"`,
+      )
+      .where('search.number IN (:...numbers)', { numbers })
+      .groupBy('search.drw_no')
+      .having(
+        'sum(search.acc) > 14 or (sum(search.acc) > 2 and sum(search.acc) < 7)',
+      )
+      .orderBy('sum(search.acc)', 'DESC')
+      .addOrderBy('search.drw_no', 'DESC')
+      .getRawMany();
+
+    return result as { drwNo: number; winRank: number }[];
+  }
+
+  async readLottoMaster(searchList: { drwNo: number; winRank: number }[]) {
+    const result = await Promise.all(
+      searchList.map(async (search) => {
+        const { drwNo, winRank } = search;
+
+        return await this.lottoMasterRepository.find({
+          relations: {
+            details: true,
+          },
+          where: {
+            drwNo,
+            details: {
+              winRank,
+            },
+          },
+        });
+      }),
+    );
+
+    return result;
   }
 }

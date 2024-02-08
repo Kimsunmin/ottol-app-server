@@ -35,6 +35,6 @@ export class LottoMasterEntity extends BaseEntity {
   @Column(() => Numbers, { prefix: 'number' })
   numbers: Numbers;
 
-  @OneToMany(() => LottoDetailEntity, (detail) => detail.win)
-  detail: LottoDetailEntity;
+  @OneToMany(() => LottoDetailEntity, (detail) => detail.master)
+  details: LottoDetailEntity[];
 }
