@@ -207,7 +207,7 @@ export class LottoService {
     const newLottoDetail = getLottoResult
       .map((result) => {
         return new Array(5)
-          .fill({ drwNo: result.drwNo })
+          .fill({ master: { drwNo: result.drwNo } })
           .map((detail, i) => {
             const winRank = i + 1;
 
