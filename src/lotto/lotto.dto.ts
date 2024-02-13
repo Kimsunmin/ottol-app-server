@@ -1,60 +1,7 @@
 import { z } from 'zod';
 import { extendApi } from '@anatine/zod-openapi';
 import { createZodDto } from '@anatine/zod-nestjs';
-
-export const LottoExelKeys = [
-  'drwNo',
-  'drwNoDate',
-  'winnerRank1',
-  'winPayRank1',
-  'winnerRank2',
-  'winPayRank2',
-  'winnerRank3',
-  'winPayRank3',
-  'winnerRank4',
-  'winPayRank4',
-  'winnerRank5',
-  'winPayRank5',
-  'drwtNo1',
-  'drwtNo2',
-  'drwtNo3',
-  'drwtNo4',
-  'drwtNo5',
-  'drwtNo6',
-  'bnusNo',
-] as const;
-
-// 기본 로또 선택 번호 6개
-export const CommonLottoSchema = extendApi(
-  z.object({
-    drwtNo1: extendApi(z.coerce.number().min(1).max(45), {
-      description: 'Select lotto number 1',
-    }),
-    drwtNo2: extendApi(z.coerce.number().min(1).max(45), {
-      description: 'Select lotto number 2',
-    }),
-    drwtNo3: extendApi(z.coerce.number().min(1).max(45), {
-      description: 'Select lotto number 3',
-    }),
-    drwtNo4: extendApi(z.coerce.number().min(1).max(45), {
-      description: 'Select lotto number 4',
-    }),
-    drwtNo5: extendApi(z.coerce.number().min(1).max(45), {
-      description: 'Select lotto number 5',
-    }),
-    drwtNo6: extendApi(z.coerce.number().min(1).max(45), {
-      description: 'Select lotto number 6',
-    }),
-    bnusNo: extendApi(z.coerce.number().min(1).max(45), {
-      description: 'Select lotto bnus number',
-    }),
-  }),
-  {
-    description: 'Common lotto selection numbers',
-  },
-);
-
-export type CommonLotto = z.infer<typeof CommonLottoSchema>;
+import { CommonLottoSchema } from '@/common/common-lotto.dto';
 
 export const SelectLottoSchema = extendApi(
   CommonLottoSchema.omit({ bnusNo: true }).superRefine((arg, ctx) => {
@@ -115,6 +62,9 @@ export const LottoResultSchema = extendApi(
       }),
     })
     .merge(CommonLottoSchema),
+  {
+    description: '로또 크롤링 데이터 타입',
+  },
 );
 
 export type LottoResult = z.infer<typeof LottoResultSchema>;

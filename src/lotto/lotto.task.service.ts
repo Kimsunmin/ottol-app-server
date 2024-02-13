@@ -13,7 +13,8 @@ import { Repository } from 'typeorm';
 import { LottoResultEntity } from '@/lotto/lotto-result.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LottoSearchEntity } from '@/lotto/lotto-search.entity';
-import { CommonLottoSchema, LottoResultSchema } from '@/lotto/lotto.dto';
+import { LottoResultSchema } from '@/lotto/lotto.dto';
+import { CommonLottoSchema } from '@/common/common-lotto.dto';
 
 @Injectable()
 export class LottoTaskService {

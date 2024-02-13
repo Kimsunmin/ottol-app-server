@@ -9,6 +9,9 @@ import {
 import { LottoResultEntity } from '@/lotto/lotto-result.entity';
 import { LottoSearchEntity } from '@/lotto/lotto-search.entity';
 import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
+import { LottoMasterEntity } from '@/lotto/lotto-master.entity';
+import { LottoDetailEntity } from '@/lotto/lotto-detail.entity';
+import { LottoSearchNewEntity } from '@/lotto/lotto-search-new.entity';
 
 @Module({
   imports: [
@@ -45,6 +48,9 @@ import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
             LottoResultEntity,
             LottoSearchEntity,
             LottoSearchHisoryEntity,
+            LottoMasterEntity,
+            LottoDetailEntity,
+            LottoSearchNewEntity,
           ],
         });
       },

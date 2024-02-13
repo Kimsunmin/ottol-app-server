@@ -1,7 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'lotto_search_history' })
-export class LottoSearchHisoryEntity {
+export class LottoSearchHisoryEntity extends BaseEntity {
   @PrimaryGeneratedColumn({ comment: '고유 번호' })
   id: number;
 
