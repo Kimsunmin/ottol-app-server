@@ -6,10 +6,10 @@ export class LottoSearchNewEntity extends BaseEntity {
   id: string;
 
   @Column({ comment: '로또 당첨 회차' })
-  drwNo: number;
+  drawRound: number;
 
   @Column({ comment: '로또 당첨 번호' })
-  number: number;
+  drawNumber: number;
 
   @Column({ comment: '로또 당첨 번호별 가중치 (1~6: 1, 보너스: 10)' })
   acc: number;

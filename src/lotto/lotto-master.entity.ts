@@ -27,14 +27,14 @@ class Numbers {
 @Entity({ name: 'lotto_master' })
 export class LottoMasterEntity extends BaseEntity {
   @PrimaryColumn({ comment: '로또 회차' })
-  drwNo: number;
+  drawRound: number;
 
   @Column({ comment: '로또 추첨 일자' })
-  drwNoDate: string;
+  drawDate: string;
 
   @Column(() => Numbers, { prefix: 'number' })
-  numbers: Numbers;
+  drawNumbers: Numbers;
 
-  @OneToMany(() => LottoDetailEntity, (detail) => detail.master)
-  details: LottoDetailEntity[];
+  @OneToMany(() => LottoDetailEntity, (detail) => detail.draw)
+  drawResults: LottoDetailEntity[];
 }

@@ -11,6 +11,15 @@ export class LottoController {
 
   @Get()
   @ApiOperation({
+    summary: '로또 번호 당첨 결과 목록 조회 (NEW)',
+    description: '사용자로 부터 입력받은 로또 번호에 따른 당첨 결과 목록 조회',
+  })
+  async readLotto(@Query() selectNumbers: SelectLottoDto) {
+    return await this.lottoService.readLottoDrawResult({ selectNumbers });
+  }
+
+  @Get('find')
+  @ApiOperation({
     summary: '로또 번호 당첨 결과 목록 조회',
     description: '사용자로 부터 입력받은 로또 번호에 따른 당첨 결과 목록 조회',
   })
@@ -18,7 +27,20 @@ export class LottoController {
     return this.lottoService.read(selectLottoDto);
   }
 
-  @Get('year/:year')
+  @Get('year/:year?')
+  @ApiOperation({
+    summary: '로또 번호 당첨 결과 조회 (NEW)',
+    description:
+      '사용자로 부터 입력받은 로또 번호와 출생년도에 따른 당첨 결과 목록 조회',
+  })
+  async readLottoByUserYear(
+    @Query() selectNumbers: SelectLottoDto,
+    @Param('year') year?: number,
+  ) {
+    return await this.lottoService.readLottoDrawResult({ selectNumbers, year });
+  }
+
+  @Get('find/:year')
   @ApiOperation({
     summary: '출생년도에 따른 로또 번호 당첨 결과 조회',
     description:
@@ -29,15 +51,5 @@ export class LottoController {
     @Param('year', ParseIntPipe) year: number,
   ) {
     return this.lottoService.readByYear(selectLottoDto, year);
-  }
-
-  @Get('test')
-  @ApiOperation({
-    summary: '로또 번호 당첨 결과 목록 조회',
-    description: '사용자로 부터 입력받은 로또 번호에 따른 당첨 결과 목록 조회',
-  })
-  async findLotto2(@Query() selectLottoDto: SelectLottoDto) {
-    const searchList = await this.lottoService.readLottoSearch(selectLottoDto);
-    return await this.lottoService.readLottoMaster(searchList);
   }
 }

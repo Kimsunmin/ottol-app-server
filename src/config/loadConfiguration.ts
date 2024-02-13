@@ -45,7 +45,8 @@ export async function findDirectoryForFile(
 export default async function loadConfiguration() {
   const env = Environment.parse(process.env.NODE_ENV);
 
-  if (env !== 'prod') {
+  const port = process.env.PORT;
+  if (!port) {
     const fileName = `.env.${env}`;
 
     const fileDirectory = await findDirectoryForFile(fileName);

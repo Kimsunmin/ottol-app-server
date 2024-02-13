@@ -188,9 +188,9 @@ export class LottoService {
       } = result;
 
       return this.lottoMasterRepository.create({
-        drwNo,
-        drwNoDate,
-        numbers: {
+        drawRound: drwNo,
+        drawDate: drwNoDate,
+        drawNumbers: {
           1: drwtNo1,
           2: drwtNo2,
           3: drwtNo3,
@@ -207,7 +207,7 @@ export class LottoService {
     const newLottoDetail = getLottoResult
       .map((result) => {
         return new Array(5)
-          .fill({ master: { drwNo: result.drwNo } })
+          .fill({ draw: { drawRound: result.drwNo } })
           .map((detail, i) => {
             const winRank = i + 1;
 
@@ -225,16 +225,16 @@ export class LottoService {
 
     const newLottoSearch = newLottoMaster
       .map((master) => {
-        const keys = Object.keys(master.numbers);
+        const keys = Object.keys(master.drawNumbers);
 
         return keys
           .map((key) => {
             const acc = key === 'bnus' ? 10 : 1;
-            const { drwNo, numbers } = master;
+            const { drawRound: drwNo, drawNumbers: numbers } = master;
 
             return this.lottoSearchNewRepository.create({
-              drwNo,
-              number: numbers[key],
+              drawRound: drwNo,
+              drawNumber: numbers[key],
               acc,
             });
           })
@@ -250,7 +250,7 @@ export class LottoService {
 
     const result = await this.lottoSearchNewRepository
       .createQueryBuilder('search')
-      .select('search.drw_no', 'drwNo')
+      .select('search.draw_round', 'drawRound')
       .addSelect(
         `case 
           when sum(search.acc) = 6 then 1
@@ -260,34 +260,72 @@ export class LottoService {
           when sum(search.acc) = 3 then 5
           end AS "winRank"`,
       )
-      .where('search.number IN (:...numbers)', { numbers })
-      .groupBy('search.drw_no')
+      .where('search.draw_number IN (:...numbers)', { numbers })
+      .groupBy('search.draw_round')
       .having(
         'sum(search.acc) > 14 or (sum(search.acc) > 2 and sum(search.acc) < 7)',
       )
       .orderBy('sum(search.acc)', 'DESC')
-      .addOrderBy('search.drw_no', 'DESC')
+      .addOrderBy('search.draw_round', 'DESC')
       .getRawMany();
 
-    return result as { drwNo: number; winRank: number }[];
+    return result as { drawRound: number; winRank: number }[];
   }
 
-  async readLottoMaster(searchList: { drwNo: number; winRank: number }[]) {
-    const result = await Promise.all(
-      searchList.map(async (search) => {
-        const { drwNo, winRank } = search;
+  private getLottoSearchQuery(selectNumbers: SelectLottoDto) {
+    const numbers = [...Object.values(selectNumbers)] as number[];
 
-        return await this.lottoMasterRepository.find({
-          relations: {
-            details: true,
-          },
-          where: {
-            drwNo,
-            details: {
-              winRank,
-            },
-          },
-        });
+    const query = (subQuery: SelectQueryBuilder<any>) => {
+      return subQuery
+        .select('search.draw_round')
+        .addSelect(
+          `case 
+          when sum(search.acc) = 6 then 1
+          when sum(search.acc) = 15 then 2
+          when sum(search.acc) = 5 then 3
+          when sum(search.acc) = 4 then 4
+          when sum(search.acc) = 3 then 5
+          end AS "win_rank"`,
+        )
+        .from('lotto_search_new', 'search')
+        .where('search.draw_number IN (:...numbers)', { numbers })
+        .groupBy('search.draw_round')
+        .having(
+          'sum(search.acc) > 14 or (sum(search.acc) > 2 and sum(search.acc) < 7)',
+        );
+    };
+
+    return query;
+  }
+
+  async readLottoDrawResult(dto: {
+    selectNumbers: SelectLottoDto;
+    year?: number;
+  }) {
+    const { selectNumbers, year } = dto;
+    const searchQuery = this.getLottoSearchQuery(selectNumbers);
+
+    const query = this.lottoMasterRepository
+      .createQueryBuilder('master')
+      .innerJoin(searchQuery, 'search', 'master.draw_round = search.draw_round')
+      .leftJoinAndSelect(
+        'master.drawResults',
+        'result',
+        'result.win_rank = search.win_rank',
+      );
+
+    if (year) {
+      query.where('master.draw_date >= :year', { year: year }).limit(1);
+    }
+
+    const result = await query.getMany();
+
+    this.lottoSearchHistoryRepository.save(
+      this.lottoSearchHistoryRepository.create({
+        ...selectNumbers,
+        drwNo: result[0].drawRound,
+        winRank: result[0].drawResults[0].winRank,
+        winPay: result[0].drawResults[0].winAmount,
       }),
     );
 
