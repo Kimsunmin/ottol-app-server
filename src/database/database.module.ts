@@ -6,12 +6,10 @@ import {
   typeormModuleOptionFactory,
   dataSourceFactory,
 } from '@/database/database.datasource';
-import { LottoResultEntity } from '@/lotto/lotto-result.entity';
-import { LottoSearchEntity } from '@/lotto/lotto-search.entity';
 import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
-import { LottoMasterEntity } from '@/lotto/lotto-master.entity';
-import { LottoDetailEntity } from '@/lotto/lotto-detail.entity';
-import { LottoSearchNewEntity } from '@/lotto/lotto-search-new.entity';
+import { LottoDrawInfoEntity } from '@/lotto/lotto-draw-info.entity';
+import { LottoDrawResultEntity } from '@/lotto/lotto-draw-result.entity';
+import { LottoSearchEntity } from '@/lotto/lotto-search.entity';
 
 @Module({
   imports: [
@@ -45,12 +43,10 @@ import { LottoSearchNewEntity } from '@/lotto/lotto-search-new.entity';
           env,
           ...database,
           entities: [
-            LottoResultEntity,
-            LottoSearchEntity,
             LottoSearchHisoryEntity,
-            LottoMasterEntity,
-            LottoDetailEntity,
-            LottoSearchNewEntity,
+            LottoDrawInfoEntity,
+            LottoDrawResultEntity,
+            LottoSearchEntity,
           ],
         });
       },

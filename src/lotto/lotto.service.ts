@@ -1,17 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { SelectLottoDto } from './lotto.dto';
-import { LottoResultEntity } from './lotto-result.entity';
-import { LottoSearchEntity } from './lotto-search.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PageOptionDto } from '../lotto/dto/page-option.dto';
-import { PageMetaDto } from '../lotto/dto/page-meta.dto';
-import { PageDto } from '../lotto/dto/page.dto';
 import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
 import { DhlotteryService } from '@/ext/dhlottery/dhlottery.service';
-import { LottoMasterEntity } from '@/lotto/lotto-master.entity';
-import { LottoDetailEntity } from '@/lotto/lotto-detail.entity';
-import { LottoSearchNewEntity } from '@/lotto/lotto-search-new.entity';
+import { LottoDrawInfoEntity } from '@/lotto/lotto-draw-info.entity';
+import { LottoDrawResultEntity } from '@/lotto/lotto-draw-result.entity';
+import { LottoSearchEntity } from '@/lotto/lotto-search.entity';
 
 @Injectable()
 export class LottoService {
@@ -21,14 +16,14 @@ export class LottoService {
     @InjectRepository(LottoSearchHisoryEntity)
     private readonly lottoSearchHistoryRepository: Repository<LottoSearchHisoryEntity>,
 
-    @InjectRepository(LottoMasterEntity)
-    private readonly lottoMasterRepository: Repository<LottoMasterEntity>,
+    @InjectRepository(LottoDrawInfoEntity)
+    private readonly lottoDrawInfoRepository: Repository<LottoDrawInfoEntity>,
 
-    @InjectRepository(LottoDetailEntity)
-    private readonly lottoDetailRepository: Repository<LottoDetailEntity>,
+    @InjectRepository(LottoDrawResultEntity)
+    private readonly lottoDrawResultRepository: Repository<LottoDrawResultEntity>,
 
-    @InjectRepository(LottoSearchNewEntity)
-    private readonly lottoSearchNewRepository: Repository<LottoSearchNewEntity>,
+    @InjectRepository(LottoSearchEntity)
+    private readonly lottoSearchRepository: Repository<LottoSearchEntity>,
   ) {}
 
   private getTwentyYear(year: number) {
@@ -46,7 +41,7 @@ export class LottoService {
       drwNoEnd,
     );
 
-    const newLottoMaster = getLottoResult.map((result) => {
+    const newLottoDrawInfo = getLottoResult.map((result) => {
       const {
         drwNo,
         drwNoDate,
@@ -59,7 +54,7 @@ export class LottoService {
         bnusNo,
       } = result;
 
-      return this.lottoMasterRepository.create({
+      return this.lottoDrawInfoRepository.create({
         drawRound: drwNo,
         drawDate: drwNoDate,
         drawNumbers: {
@@ -74,9 +69,11 @@ export class LottoService {
       });
     });
 
-    await this.lottoMasterRepository.save(newLottoMaster, { reload: false });
+    await this.lottoDrawInfoRepository.save(newLottoDrawInfo, {
+      reload: false,
+    });
 
-    const newLottoDetail = getLottoResult
+    const newLottoDrawResult = getLottoResult
       .map((result) => {
         return new Array(5)
           .fill({ draw: { drawRound: result.drwNo } })
@@ -87,26 +84,28 @@ export class LottoService {
             detail.winNumber = result[`winnerRank${winRank}`];
             detail.winAmount = result[`winPayRank${winRank}`];
 
-            return this.lottoDetailRepository.create(detail);
+            return this.lottoDrawResultRepository.create(detail);
           })
           .flat();
       })
       .flat();
 
-    await this.lottoDetailRepository.save(newLottoDetail, { reload: false });
+    await this.lottoDrawResultRepository.save(newLottoDrawResult, {
+      reload: false,
+    });
 
-    const newLottoSearch = newLottoMaster
-      .map((master) => {
-        const keys = Object.keys(master.drawNumbers);
+    const newLottoSearch = newLottoDrawInfo
+      .map((lottoDrawInfo) => {
+        const keys = Object.keys(lottoDrawInfo.drawNumbers);
 
         return keys
           .map((key) => {
             const acc = key === 'bnus' ? 10 : 1;
-            const { drawRound: drwNo, drawNumbers: numbers } = master;
+            const { drawRound, drawNumbers } = lottoDrawInfo;
 
-            return this.lottoSearchNewRepository.create({
-              drawRound: drwNo,
-              drawNumber: numbers[key],
+            return this.lottoSearchRepository.create({
+              drawRound: drawRound,
+              drawNumber: drawNumbers[key],
               acc,
             });
           })
@@ -114,13 +113,13 @@ export class LottoService {
       })
       .flat();
 
-    await this.lottoSearchNewRepository.save(newLottoSearch, { reload: false });
+    await this.lottoSearchRepository.save(newLottoSearch, { reload: false });
   }
 
   async readSavedLastDrawRound() {
-    const result = (await this.lottoMasterRepository
-      .createQueryBuilder('master')
-      .select('MAX(master.draw_round)', 'drawRound')
+    const result = (await this.lottoDrawInfoRepository
+      .createQueryBuilder('info')
+      .select('MAX(info.draw_round)', 'drawRound')
       .getRawOne()) as { drawRound: number | null };
 
     const { drawRound } = result;
@@ -129,33 +128,6 @@ export class LottoService {
     }
 
     return drawRound;
-  }
-
-  async readLottoSearch(selectNumbers: SelectLottoDto) {
-    const numbers = [...Object.values(selectNumbers)] as number[];
-
-    const result = await this.lottoSearchNewRepository
-      .createQueryBuilder('search')
-      .select('search.draw_round', 'drawRound')
-      .addSelect(
-        `case 
-          when sum(search.acc) = 6 then 1
-          when sum(search.acc) = 15 then 2
-          when sum(search.acc) = 5 then 3
-          when sum(search.acc) = 4 then 4
-          when sum(search.acc) = 3 then 5
-          end AS "winRank"`,
-      )
-      .where('search.draw_number IN (:...numbers)', { numbers })
-      .groupBy('search.draw_round')
-      .having(
-        'sum(search.acc) > 14 or (sum(search.acc) > 2 and sum(search.acc) < 7)',
-      )
-      .orderBy('sum(search.acc)', 'DESC')
-      .addOrderBy('search.draw_round', 'DESC')
-      .getRawMany();
-
-    return result as { drawRound: number; winRank: number }[];
   }
 
   private getLottoSearchQuery(selectNumbers: SelectLottoDto) {
@@ -173,7 +145,7 @@ export class LottoService {
           when sum(search.acc) = 3 then 5
           end AS "win_rank"`,
         )
-        .from('lotto_search_new', 'search')
+        .from('lotto_search', 'search')
         .where('search.draw_number IN (:...numbers)', { numbers })
         .groupBy('search.draw_round')
         .having(
@@ -184,18 +156,15 @@ export class LottoService {
     return query;
   }
 
-  async readLottoDrawResult(dto: {
-    selectNumbers: SelectLottoDto;
-    year?: number;
-  }) {
-    const { selectNumbers, year } = dto;
+  async checkLottoDrawResult(dto: { selectNumbers: SelectLottoDto }) {
+    const { selectNumbers } = dto;
     const searchQuery = this.getLottoSearchQuery(selectNumbers);
 
-    const query = this.lottoMasterRepository
-      .createQueryBuilder('master')
-      .innerJoin(searchQuery, 'search', 'master.draw_round = search.draw_round')
+    const query = this.lottoDrawInfoRepository
+      .createQueryBuilder('info')
+      .innerJoin(searchQuery, 'search', 'info.draw_round = search.draw_round')
       .leftJoinAndSelect(
-        'master.drawResults',
+        'info.drawResults',
         'result',
         'result.win_rank = search.win_rank',
       );
@@ -204,33 +173,38 @@ export class LottoService {
     return result;
   }
 
-  async readLottoDrawResultByYear(dto: {
+  async checkLottoDrawResultByYear(dto: {
     selectNumbers: SelectLottoDto;
     year: number;
   }) {
     const { selectNumbers, year } = dto;
     const searchQuery = this.getLottoSearchQuery(selectNumbers);
 
-    const query = this.lottoMasterRepository
-      .createQueryBuilder('master')
-      .innerJoin(searchQuery, 'search', 'master.draw_round = search.draw_round')
+    const query = this.lottoDrawInfoRepository
+      .createQueryBuilder('info')
+      .innerJoin(searchQuery, 'search', 'info.draw_round = search.draw_round')
       .leftJoinAndSelect(
-        'master.drawResults',
+        'info.drawResults',
         'result',
         'result.win_rank = search.win_rank',
       )
-      .where('master.draw_date >= :year', { year: year })
+      .where('info.draw_date >= :year', { year: year })
       .orderBy('result.win_Amount', 'DESC')
-      .addOrderBy('master.draw_round', 'DESC')
+      .addOrderBy('info.draw_round', 'DESC')
       .limit(1);
 
     const result = await query.getOne();
 
     const newSearchHistory = this.lottoSearchHistoryRepository.create({
-      ...selectNumbers,
-      drwNo: result.drawRound,
-      winPay: result.drawResults[0].winAmount,
-      winRank: result.drawResults[0].winRank,
+      drawNumbers: {
+        '1': result.drawNumbers[1],
+        '2': result.drawNumbers[2],
+        '3': result.drawNumbers[3],
+        '4': result.drawNumbers[4],
+        '5': result.drawNumbers[5],
+        '6': result.drawNumbers[6],
+      },
+      drawResult: result.drawResults[0],
     });
     this.lottoSearchHistoryRepository.save(newSearchHistory);
 

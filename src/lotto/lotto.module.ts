@@ -4,13 +4,11 @@ import { LottoController } from './lotto.controller';
 import { LottoService } from './lotto.service';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { LottoSearchEntity } from './lotto-search.entity';
-import { LottoResultEntity } from './lotto-result.entity';
 import { LottoSearchHisoryEntity } from '@/lotto/lotto-search-history.entity';
 import { LottoTaskService } from '@/lotto/lotto.task.service';
-import { LottoMasterEntity } from '@/lotto/lotto-master.entity';
-import { LottoDetailEntity } from '@/lotto/lotto-detail.entity';
-import { LottoSearchNewEntity } from '@/lotto/lotto-search-new.entity';
+import { LottoDrawInfoEntity } from '@/lotto/lotto-draw-info.entity';
+import { LottoDrawResultEntity } from '@/lotto/lotto-draw-result.entity';
+import { LottoSearchEntity } from '@/lotto/lotto-search.entity';
 import { DhlotteryModule } from '@/ext/dhlottery/dhlottery.module';
 
 @Module({
@@ -19,12 +17,10 @@ import { DhlotteryModule } from '@/ext/dhlottery/dhlottery.module';
     DhlotteryModule,
     ScheduleModule.forRoot(),
     TypeOrmModule.forFeature([
-      LottoResultEntity,
       LottoSearchEntity,
       LottoSearchHisoryEntity,
-      LottoMasterEntity,
-      LottoDetailEntity,
-      LottoSearchNewEntity,
+      LottoDrawInfoEntity,
+      LottoDrawResultEntity,
     ]),
   ],
   controllers: [LottoController],

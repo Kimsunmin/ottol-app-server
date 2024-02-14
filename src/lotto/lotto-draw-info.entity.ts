@@ -1,4 +1,4 @@
-import { LottoDetailEntity } from '@/lotto/lotto-detail.entity';
+import { LottoDrawResultEntity } from '@/lotto/lotto-draw-result.entity';
 import { BaseEntity, Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 class Numbers {
@@ -24,8 +24,8 @@ class Numbers {
   bnus: number;
 }
 
-@Entity({ name: 'lotto_master' })
-export class LottoMasterEntity extends BaseEntity {
+@Entity({ name: 'lotto_draw_info' })
+export class LottoDrawInfoEntity extends BaseEntity {
   @PrimaryColumn({ comment: '로또 회차' })
   drawRound: number;
 
@@ -35,6 +35,9 @@ export class LottoMasterEntity extends BaseEntity {
   @Column(() => Numbers, { prefix: 'number' })
   drawNumbers: Numbers;
 
-  @OneToMany(() => LottoDetailEntity, (detail) => detail.draw)
-  drawResults: LottoDetailEntity[];
+  @OneToMany(
+    () => LottoDrawResultEntity,
+    (lottoDrawResult) => lottoDrawResult.draw,
+  )
+  drawResults: LottoDrawResultEntity[];
 }
