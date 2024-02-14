@@ -5,6 +5,7 @@ import { Logger, VersioningType } from '@nestjs/common';
 import { ZodValidationPipe, patchNestjsSwagger } from '@anatine/zod-nestjs';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggingInterceptor } from '@/common/logging.interceptor';
+import { ResponseBodyInterceptor } from '@/common/response-body.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -12,6 +13,7 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3000);
 
   app.useGlobalPipes(new ZodValidationPipe());
+  app.useGlobalInterceptors(new ResponseBodyInterceptor());
   app.useGlobalInterceptors(new LoggingInterceptor(new Logger()));
 
   app.setGlobalPrefix('api');

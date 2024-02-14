@@ -23,7 +23,7 @@ export const SelectLottoSchema = extendApi(
 
 export class SelectLottoDto extends createZodDto(SelectLottoSchema) {}
 
-export const LottoResultSchema = extendApi(
+export const DhLottoryResultSchema = extendApi(
   z
     .object({
       drwNo: extendApi(z.coerce.number(), { description: '로또 추첨 회차' }),
@@ -67,4 +67,4 @@ export const LottoResultSchema = extendApi(
   },
 );
 
-export type LottoResult = z.infer<typeof LottoResultSchema>;
+export type DhLottoryResult = z.infer<typeof DhLottoryResultSchema>;

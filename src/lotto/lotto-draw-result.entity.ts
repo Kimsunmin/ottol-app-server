@@ -1,4 +1,4 @@
-import { LottoMasterEntity } from '@/lotto/lotto-master.entity';
+import { LottoDrawInfoEntity } from '@/lotto/lotto-draw-info.entity';
 import {
   BaseEntity,
   Column,
@@ -9,14 +9,17 @@ import {
   Relation,
 } from 'typeorm';
 
-@Entity({ name: 'lotto_detail' })
-export class LottoDetailEntity extends BaseEntity {
+@Entity({ name: 'lotto_draw_result' })
+export class LottoDrawResultEntity extends BaseEntity {
   @PrimaryGeneratedColumn({ comment: '고유 번호' })
   id: number;
 
-  @ManyToOne(() => LottoMasterEntity, (master) => master.drawResults)
+  @ManyToOne(
+    () => LottoDrawInfoEntity,
+    (lottoDrawInfo) => lottoDrawInfo.drawResults,
+  )
   @JoinColumn({ name: 'draw_round' })
-  draw: Relation<LottoMasterEntity>;
+  draw: Relation<LottoDrawInfoEntity>;
 
   @Column({ comment: '로또 당첨 등수' })
   winRank: number;
